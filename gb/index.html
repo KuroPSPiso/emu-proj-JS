@@ -1,0 +1,51 @@
+<html>
+    <head>
+            <script type="text/javascript" src="js/cpu.js"></script>
+            <script type="text/javascript" src="js/opcode.js"></script>
+            <script type="text/javascript" src="js/memsys.js"></script>
+            <script type="text/javascript" src="js/strfunc.js"></script>
+    </head>
+    <body>
+        <div id="display"></div>
+        <div id="controls"></div>
+        <div id="debug"></div>
+        <script>
+
+            var isDebugMode = true;
+
+            var memSys = new MemorySystem([],[]);
+            var cpu = new CPU(0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0000,0x0000);
+
+            var debug = document.getElementById('debug');
+            var isRunning = true;
+            var cycles = 0;
+            var func = 0x00; //NOP
+            var cbfunc = 0x00;
+
+            var loop = setInterval(function(){
+                //live debug
+                if(isDebugMode){
+                    debug.innerText = cpu.pc.toString(16).padLeft(4, '0').toUpperCase();
+                }
+                
+                func = read8(cpu.pc);
+                if(func === 0xCB){
+                    cbfunc = read8(cpu.pc);
+                }else{
+                    
+                }
+
+                if(!isRunning) clearInterval(loop);
+            });
+
+            var read8 = function(memloc){
+                cpu.PC = cpu.pc + 1;
+                return 0;
+            }
+            var read16 = function(memloc){
+                cpu.PC = cpu.pc + 2;
+                return 0;
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script type="text/javascript" src="js/8080.js"></script>
+        <script type="text/javascript" src="js/strfunc.js"></script>
+    </head>
+    <body>
+        <div id="display"></div>
+        <div id="controls"></div>
+        <div id="debug"></div>
+        <script>
+            //DEBUG
+            var isDebugMode = true;
+            var debug = document.getElementById('debug');
+
+            //INIT
+            var cpu = new CPU();
+
+            //LOOP
+            var isRunning = true;
+            var loop = setInterval(function(){
+                //live debug
+                if(isDebugMode){
+                    //debug.innerText = cpu.PC.toString(16).padLeft(4, '0').toUpperCase();
+                    debug.innerText = JSON.stringify(cpu).toString(16);
+                }
+
+
+
+                if(!isRunning) clearInterval(loop);
+            });
+        </script>
+    </body>
+</html>
