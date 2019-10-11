@@ -21,11 +21,17 @@ var CPU = function(bus){
     this.H  = function() { return getA(); };
     this.L  = function() { return getA(); };
     this.HL = function() { return getA(); };
+    this.PC_CARRY = 0; //manual reset on first fetch (?check if usable)
 
     //operations (un)related to opcodes, correct cycle counting
     var setPC = function(value)    { PC = value; }
     var getPC = function()         { return PC; };
-    var incPC = function()         { tick++; cycles++; PC++; }; //use whenever calling function (program counter, ups cycles), called twice per 16bit
+    var incPC = function()         { 
+        tick++;
+        cycles++;
+        PC++;
+        if(PC >= 0x8000) { PC -= 0x8000; this.PC_CARRY = 1; }
+    }; //use whenever calling function (program counter, ups cycles), called twice per 16bit
 
     this.scanFunction = function(opcode){
         switch (opcode) {
