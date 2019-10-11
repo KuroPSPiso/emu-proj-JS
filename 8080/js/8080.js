@@ -26,16 +26,6 @@ var CPU = function(bus){
     this.HL = function() { return getA(); };
     this.debug = function() { return `AF(${this.AF().toString(16)}),BC(${this.BC().toString(16)}),DE(${this.DE().toString(16)}),HL(${this.HL().toString(16)}),PC(${PC.toString(16)}),TICK(${this.getTick()}),OPNAME(${this.getOpName()}),PC_CARRY(${this.getPC_CARRY()})`}
 
-    //operations (un)related to opcodes, correct cycle counting
-    var setPC = function(value)    { PC = value; }
-    var getPC = function()         { incPC(); return PC; };
-    var incPC = function()         { 
-        tick++;
-        cycles++;
-        PC++;
-        if(PC >= 0x100) { PC -= 0x100; this.PC_CARRY = 1; } //limit is set by max size in rom/ram
-    }; //use whenever calling function (program counter, ups cycles), called twice per 16bit
-
     this.exec = function(){
         PC_CARRY = 0;
         var pc = getPC();
@@ -803,6 +793,33 @@ var CPU = function(bus){
         }
     };
 
+    //operations (un)related to opcodes, correct cycle counting
+    var setPC = function(value)    { PC = value; }
+    var getPC = function()         { incPC(); return PC; };
+    var incPC = function()         { 
+        tick++;
+        cycles++;
+        PC++;
+        if(PC >= 0x100) { PC -= 0x100; this.PC_CARRY = 1; } //limit is set by max size in rom/ram
+    }; //use whenever calling function (program counter, ups cycles), called twice per 16bit
+    var checkBit = function(byte, bitPos){
+        return ((byte & (1<<bitPos)) != 0);
+    }
+    var setBit = function (byte, bitPos){
+        return (byte |= (1 << bitPos));
+    };
+    var clearBit = function(byte, bitPos){
+        return (byte &= ~(1 << bitPos));
+    };
+    var toggleBit = function(byte, bitPos, state){
+        if(state === true){
+            setBit();
+        } else {
+            clearBit();
+        }
+    }
+
+    //standard opcodes
     var NOP = function() {  };
 
     var movA = function(value) { this.AF = (value << 4) + (this.AF & 0x0F); };

@@ -16,7 +16,7 @@
 
             //INIT
             var bus = new BUS();
-            var ram = new RAM();
+            var ram = new RAM(0x10000); //64k
             var cpu = new CPU(bus);
 
             //ASSIGN
@@ -35,7 +35,7 @@
                 cpu.exec();
 
                 if(!isRunning) clearInterval(loop);
-            });
+            }, 100); //remove 2nd argument to change/max out program exec speed.
         </script>
     </body>
 </html>
