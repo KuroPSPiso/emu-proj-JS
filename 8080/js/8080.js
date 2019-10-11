@@ -30,7 +30,7 @@ var CPU = function(bus){
         tick++;
         cycles++;
         PC++;
-        if(PC >= 0x8000) { PC -= 0x8000; this.PC_CARRY = 1; }
+        if(PC >= 0x100) { PC -= 0x100; this.PC_CARRY = 1; } //limit is set by max size in rom/ram
     }; //use whenever calling function (program counter, ups cycles), called twice per 16bit
 
     this.scanFunction = function(opcode){
