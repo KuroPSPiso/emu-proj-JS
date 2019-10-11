@@ -48,6 +48,9 @@ var CPU = function(bus){
             case 0x05: 
                 this.opName = 'NOP';
                 break;
+            case 0x06: 
+                this.opName = 'NOP';
+                break;
             case 0x07: 
                 this.opName = 'NOP';
                 break;
@@ -92,6 +95,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0x15: 
+                this.opName = 'NOP';
+                break;
+            case 0x16: 
                 this.opName = 'NOP';
                 break;
             case 0x17: 
@@ -140,6 +146,9 @@ var CPU = function(bus){
             case 0x25: 
                 this.opName = 'NOP';
                 break;
+            case 0x26: 
+                this.opName = 'NOP';
+                break;
             case 0x27: 
                 this.opName = 'NOP';
                 break;
@@ -184,6 +193,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0x35: 
+                this.opName = 'NOP';
+                break;
+            case 0x36: 
                 this.opName = 'NOP';
                 break;
             case 0x37: 
@@ -232,6 +244,9 @@ var CPU = function(bus){
             case 0x45: 
                 this.opName = 'NOP';
                 break;
+            case 0x46: 
+                this.opName = 'NOP';
+                break;
             case 0x47: 
                 this.opName = 'NOP';
                 break;
@@ -276,6 +291,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0x55: 
+                this.opName = 'NOP';
+                break;
+            case 0x56: 
                 this.opName = 'NOP';
                 break;
             case 0x57: 
@@ -324,6 +342,9 @@ var CPU = function(bus){
             case 0x65: 
                 this.opName = 'NOP';
                 break;
+            case 0x66: 
+                this.opName = 'NOP';
+                break;
             case 0x67: 
                 this.opName = 'NOP';
                 break;
@@ -368,6 +389,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0x75: 
+                this.opName = 'NOP';
+                break;
+            case 0x76: 
                 this.opName = 'NOP';
                 break;
             case 0x77: 
@@ -416,6 +440,9 @@ var CPU = function(bus){
             case 0x85: 
                 this.opName = 'NOP';
                 break;
+            case 0x86: 
+                this.opName = 'NOP';
+                break;
             case 0x87: 
                 this.opName = 'NOP';
                 break;
@@ -460,6 +487,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0x95: 
+                this.opName = 'NOP';
+                break;
+            case 0x96: 
                 this.opName = 'NOP';
                 break;
             case 0x97: 
@@ -508,6 +538,9 @@ var CPU = function(bus){
             case 0xA5: 
                 this.opName = 'NOP';
                 break;
+            case 0xA6: 
+                this.opName = 'NOP';
+                break;
             case 0xA7: 
                 this.opName = 'NOP';
                 break;
@@ -554,6 +587,9 @@ var CPU = function(bus){
             case 0xB5: 
                 this.opName = 'NOP';
                 break;
+            case 0xB6: 
+                this.opName = 'NOP';
+                break;
             case 0xB7: 
                 this.opName = 'NOP';
                 break;
@@ -598,6 +634,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0xC5: 
+                this.opName = 'NOP';
+                break;
+            case 0xC6: 
                 this.opName = 'NOP';
                 break;
             case 0xC7: 
@@ -649,6 +688,9 @@ var CPU = function(bus){
             case 0xD7: 
                 this.opName = 'NOP';
                 break;
+            case 0xD6: 
+                this.opName = 'NOP';
+                break;
             case 0xD8: 
                 this.opName = 'NOP';
                 break;
@@ -690,6 +732,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0xE5: 
+                this.opName = 'NOP';
+                break;
+            case 0xE6: 
                 this.opName = 'NOP';
                 break;
             case 0xE7: 
@@ -736,6 +781,9 @@ var CPU = function(bus){
                 this.opName = 'NOP';
                 break;
             case 0xF5: 
+                this.opName = 'NOP';
+                break;
+            case 0xF6: 
                 this.opName = 'NOP';
                 break;
             case 0xF7: 
