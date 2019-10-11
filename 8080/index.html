@@ -15,7 +15,13 @@
             var debug = document.getElementById('debug');
 
             //INIT
-            var cpu = new CPU();
+            var bus = new BUS();
+            var ram = new RAM();
+            var cpu = new CPU(bus);
+
+            //ASSIGN
+            bus.memory = ram;
+            bus.cpu = cpu;
 
             //LOOP
             var isRunning = true;
@@ -23,10 +29,10 @@
                 //live debug
                 if(isDebugMode){
                     //debug.innerText = cpu.PC.toString(16).padLeft(4, '0').toUpperCase();
-                    debug.innerText = JSON.stringify(cpu).toString(16);
+                    debug.innerText = cpu.debug();
                 }
 
-
+                cpu.exec();
 
                 if(!isRunning) clearInterval(loop);
             });
