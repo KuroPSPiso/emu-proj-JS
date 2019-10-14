@@ -1071,7 +1071,7 @@ var CPU = function(bus){
         defaultPF(getA());
     };
     var xrA = function(value)   {
-        movA(getA ^ value);
+        movA(getA() ^ value);
         clearCF();
         //clearANA();
         defaultZF(getA());
@@ -1079,7 +1079,7 @@ var CPU = function(bus){
         defaultPF(getA());
     };
     var orA = function(value)   {
-        movA(getA | value);
+        movA(getA() | value);
         clearCF();
         //clearANA();
         defaultZF(getA());
