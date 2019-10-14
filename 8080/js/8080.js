@@ -573,27 +573,35 @@ var CPU = function(bus){
                 break;
             case 0x98: 
                 opName = 'SBB B';
+                sbbA(getB());
                 break;
             case 0x99: 
                 opName = 'SBB C';
+                sbbA(getC());
                 break;
             case 0x9A: 
                 opName = 'SBB D';
+                sbbA(getD());
                 break;
             case 0x9B: 
                 opName = 'SBB E';
+                sbbA(getE());
                 break;
             case 0x9C: 
                 opName = 'SBB H';
+                sbbA(getH());
                 break;
             case 0x9D: 
                 opName = 'SBB L';
+                sbbA(getL());
                 break;
             case 0x9E: 
                 opName = 'SBB M';
+                sbbA(r8(HL));
                 break;
             case 0x9F: 
                 opName = 'SBB A';
+                sbbA(getA());
                 break;
             //0xAX
             case 0xA0:
@@ -1027,6 +1035,9 @@ var CPU = function(bus){
         //documentation solution, compliment value and use ADD. (unable to fetch carry, unless inverse is expected)
         addA((0xFF-value) + 0x01);
     };
+    var sbbA = function(value)  {
+        addA(((0xFF-value) + 0x01)+getCF());
+    }
     var inxA = function()       {
 
     };

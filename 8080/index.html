@@ -49,12 +49,13 @@
             <a onclick="debugFunc = 0x87">addA</a>
             <a onclick="debugFunc = 0x8F">adcA</a>
             <a onclick="debugFunc = 0x97">subA</a>
+            <a onclick="debugFunc = 0x9F">sbbA</a>
         <script>
             //DEBUG
             var isDebugMode = true;
             var debug = document.getElementById('debug');
-            var speed = 0;
-            // var speed = 1000;
+            // var speed = 0;
+            var speed = 1000;
 
             //INIT
             var bus = new BUS();
