@@ -476,27 +476,35 @@ var CPU = function(bus){
             //0x8X
             case 0x80:
                 opName = 'ADD B';
+                addA(getB());
                 break;
             case 0x81: 
                 opName = 'ADD C';
+                addA(getC());
                 break;
             case 0x82: 
                 opName = 'ADD D';
+                addA(getD());
                 break;
             case 0x83: 
                 opName = 'ADD E';
+                addA(getE());
                 break;
             case 0x84: 
                 opName = 'ADD H';
+                addA(getH());
                 break;
             case 0x85: 
                 opName = 'ADD L';
+                addA(getL());
                 break;
             case 0x86: 
                 opName = 'ADD M';
+                addA(r8(HL));
                 break;
             case 0x87: 
                 opName = 'ADD A';
+                addA(getA());
                 break;
             case 0x88: 
                 opName = 'ADC B';
@@ -951,7 +959,16 @@ var CPU = function(bus){
     var movA = function(value)  { AF = ((value & 0xFF) << 8) + (AF & 0x00FF); };
     var getA = function()       { return (AF & 0xFF00) >> 8; };
     var addA = function(value)  {
-        
+        var data = getA() + value;
+        var half = getA() & 0x0F + value & 0x0F;
+        if(data > 0xFF) stC();
+        if(half > 0x0F) stAC();
+        data = data & 0xFF;
+        defaultZ(data);
+        defaultP(data);
+        defaultS(data);
+        console.log(`${getA().toString()} + ${data}`);
+        movA(data);
     };
     var subA = function(value)  {
 
@@ -1002,8 +1019,8 @@ var CPU = function(bus){
         defaultZ(getA());
         defaultP(getA());
     };
-    var stAX = function(value)      {
-        _bus.memory.data[value] = getA();
+    var stAX = function(loc)      {
+        w8(getA(), loc);
     };
     var stAXB = function()          {
         stAX(this.BC);
@@ -1011,8 +1028,8 @@ var CPU = function(bus){
     var stAXD = function()          {
         stAX(this.DE);
     };
-    var ldAX = function(value)      {
-        movA(_bus.memory.data[value]);
+    var ldAX = function(loc)      {
+        movA(r8(loc));
     }
     var ldAXB = function()          {
         ldAX(this.BC);
@@ -1043,6 +1060,23 @@ var CPU = function(bus){
     var getL = function()       { return HL & 0x00FF; };
 
     var cmc = function()        { if(checkBit(getF(), 7)){ clearC(); } else { stC(); } }
+
+    //RAM ACCESS
+    var r8 = function(loc)          {
+        cycles++;
+        return _bus.memory.read8(loc);
+    }
+    var r16 = function(loc1, loc2)  { //littleEndian
+        return (r8(loc2) << 8) + r8(loc1);
+    }
+    var w8 = function(value, loc)   {
+        cycles++;
+        _bus.memory.write8(value, loc);
+    }
+    var write16 = function(value, loc1, loc2){
+        w8(value >> 8, loc2);
+        w8(value & 0x0F, loc1);
+    }
 };
 
 var BUS = function(rom) {
@@ -1057,5 +1091,13 @@ var RAM = function (size) {
     this.data = []; //create array object for RAM (contains STACK)
     for(var dI = 0; dI < size; dI++){
         this.data.push(0); //clear default data
+    }
+
+    this.read8 = function(loc){
+        return this.data[loc];
+    }
+
+    this.write8 = function(value, loc){
+        this.data[loc] = value;
     }
 }
