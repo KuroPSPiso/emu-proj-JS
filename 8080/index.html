@@ -2,17 +2,53 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <link href="https://fonts.googleapis.com/css?family=VT323&display=swap" rel="stylesheet"> 
         <script type="text/javascript" src="js/8080.js"></script>
         <script type="text/javascript" src="js/strfunc.js"></script>
+        <style>
+            html,body{
+                font-family: 'VT323', monospace;
+                background-color: black;
+                color: orange;
+                font-size: 1.1rem;
+                text-shadow: 0 0 0.2rem orangered;
+                box-shadow: inset 0 0 .2rem orangered;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                min-height: 100%;
+            }
+
+            a {
+                background-color: orange;
+                color: black;
+                padding: 0.1rem 0.2rem;
+                box-shadow: 0 0 0.3rem orangered;
+            }
+            a:hover{
+                background-color: orangered;
+            }
+        </style>
     </head>
     <body>
         <div id="display"></div>
-        <div id="controls"></div>
+        <div id="controls">
+        </div>
         <div id="debug"></div>
+            <a onclick="debugFunc = null">run</a>
+            <a onclick="debugFunc = 0x00">nop</a>
+            <a onclick="debugFunc = 0x02">stAXB</a>
+            <a onclick="debugFunc = 0x12">stAXD</a>
+            <a onclick="debugFunc = 0x27">daA</a>
+            <a onclick="debugFunc = 0x2F">cmA</a>
+            <a onclick="debugFunc = 0x3C">incA</a>
+            <a onclick="debugFunc = 0x3D">decA</a>
+            <a onclick="debugFunc = 0x3F">cmc</a>
         <script>
             //DEBUG
             var isDebugMode = true;
             var debug = document.getElementById('debug');
+            var speed = 0;
 
             //INIT
             var bus = new BUS();
@@ -23,6 +59,8 @@
             bus.memory = ram;
             bus.cpu = cpu;
 
+            var debugFunc = null;
+
             //LOOP
             var isRunning = true;
             var loop = setInterval(function(){
@@ -32,10 +70,10 @@
                     debug.innerText = cpu.debug();
                 }
 
-                cpu.exec();
+                cpu.exec(debugFunc);
 
-                if(!isRunning) clearInterval(loop);
-            }, 100); //remove 2nd argument to change/max out program exec speed.
+                if(!isRunning) DlearInterval(loop);
+            }, speed); //remove 2nd argument to change/max out program exec speed.
         </script>
     </body>
 </html>

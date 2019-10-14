@@ -1,8 +1,10 @@
 var CPU = function(bus){
     var _bus = bus;
 
-    var AF = BC = DE = HL = 0x00;   //registers (8-bit registers)
-    var PC = SP = 0x0000;           //pointers (16-bit registers)
+    var AF = BC = DE = HL = 0x0000;     //registers (8-bit registers)
+    var PC = SP = 0x0000;               //pointers (16-bit registers)
+
+    AF = 0x0002;
     //not part of actual cpu (helpers)
     var opName = 'NOP';
     var tick = cycles = PC_CARRY = 0; //manual reset on first fetch (?check if usable)
@@ -15,20 +17,21 @@ var CPU = function(bus){
     this.A  = function() { return getA(); };
     this.F  = function() { return getF(); };
     this.AF = function() { return (getA() << 8) + getF(); };
-    this.B  = function() { return getA(); };
-    this.C  = function() { return getA(); };
-    this.BC = function() { return getA(); };
-    this.D  = function() { return getA(); };
-    this.E  = function() { return getA(); };
-    this.DE = function() { return getA(); };
-    this.H  = function() { return getA(); };
-    this.L  = function() { return getA(); };
-    this.HL = function() { return getA(); };
-    this.debug = function() { return `AF(${this.AF().toString(16)}),BC(${this.BC().toString(16)}),DE(${this.DE().toString(16)}),HL(${this.HL().toString(16)}),PC(${PC.toString(16)}),TICK(${this.getTick()}),OPNAME(${this.getOpName()}),PC_CARRY(${this.getPC_CARRY()})`}
+    this.B  = function() { return getB(); };
+    this.C  = function() { return getC(); };
+    this.BC = function() { return (getB() << 8) + getC(); };
+    this.D  = function() { return getD(); };
+    this.E  = function() { return getE(); };
+    this.DE = function() { return (getD() << 8) + getE(); };
+    this.H  = function() { return getH(); };
+    this.L  = function() { return getL(); };
+    this.HL = function() { return (getH() << 8) + getL(); };
+    this.debug = function() { return `AF(${this.AF().toString(16).padLeft(4, '0').toUpperCase()}),BC(${this.BC().toString(16).padLeft(4, '0').toUpperCase()}),DE(${this.DE().toString(16).padLeft(4, '0').toUpperCase()}),HL(${this.HL().toString(16).padLeft(4, '0').toUpperCase()}),PC(${PC.toString(16).padLeft(4, '0').toUpperCase()}),TICK(${this.getTick().toString().padLeft(10, '0').toUpperCase()}),OPNAME(${this.getOpName().toString().padLeft(9, '_')}),PC_CARRY(${this.getPC_CARRY()})`}
 
-    this.exec = function(){
+    this.exec = function(debugOpcode){
         PC_CARRY = 0;
         var pc = getPC();
+        if(typeof debugOpcode != 'undefined' && debugOpcode != null) pc = debugOpcode;
         scan(pc);
     }
 
@@ -43,6 +46,7 @@ var CPU = function(bus){
                 break;
             case 0x02: 
                 opName = 'STAX B';
+                stAXB();
                 break;
             case 0x03: 
                 opName = 'INX B';
@@ -86,6 +90,7 @@ var CPU = function(bus){
                 break;
             case 0x12: 
                 opName = 'STAX D';
+                stAXD();
                 break;
             case 0x13: 
                 opName = 'INX D';
@@ -144,6 +149,7 @@ var CPU = function(bus){
                 break;
             case 0x27: 
                 opName = 'DAA';
+                daA();
                 break;
             case 0x29: 
                 opName = 'DAD H';
@@ -165,6 +171,7 @@ var CPU = function(bus){
                 break;
             case 0x2F: 
                 opName = 'CMA';
+                cmA();
                 break;
             //0x3X
             case 0x31: 
@@ -199,162 +206,213 @@ var CPU = function(bus){
                 break;
             case 0x3C: 
                 opName = 'INR A';
+                inrA();
                 break;
             case 0x3D: 
                 opName = 'DCR A';
+                dcrA();
                 break;
             case 0x3E: 
                 opName = 'MVI A';
                 break;
             case 0x3F: 
                 opName = 'CMC';
+                cmc();
                 break;
             //0x4X
             case 0x40:
                 opName = 'MOV B,B';
+                movB(getB());
                 break;
             case 0x41: 
                 opName = 'MOV B,C';
+                movB(getC());
                 break;
             case 0x42: 
                 opName = 'MOV B,D';
+                movB(getD());
                 break;
             case 0x43: 
                 opName = 'MOV B,E';
+                movB(getE());
                 break;
             case 0x44: 
                 opName = 'MOV B,H';
+                movB(getH());
                 break;
             case 0x45: 
                 opName = 'MOV B,L';
+                movB(getL());
                 break;
             case 0x46: 
                 opName = 'MOV B,M';
+                movB(_bus.memory.data[HL]);
                 break;
             case 0x47: 
                 opName = 'MOV B,A';
+                movB(getA());
                 break;
             case 0x48: 
                 opName = 'MOV C,B';
+                movC(getB());
                 break;
             case 0x49: 
                 opName = 'MOV C,C';
+                movC(getC());
                 break;
             case 0x4A: 
                 opName = 'MOV C,D';
+                movC(getD());
                 break;
             case 0x4B: 
                 opName = 'MOV C,E';
+                movC(getE());
                 break;
             case 0x4C: 
                 opName = 'MOV C,H';
+                movC(getH());
                 break;
             case 0x4D: 
                 opName = 'MOV C,L';
+                movC(getL());
                 break;
             case 0x4E: 
                 opName = 'MOV C,M';
+                movC(_bus.memory.data[HL]);
                 break;
             case 0x4F: 
                 opName = 'MOV C,A';
+                movC(getA());
                 break;
             //0x5X
             case 0x50:
                 opName = 'MOV D,B';
+                movD(getB());
                 break;
             case 0x51: 
                 opName = 'MOV D,C';
+                movD(getC());
                 break;
             case 0x52: 
                 opName = 'MOV D,D';
+                movD(getD());
                 break;
             case 0x53: 
                 opName = 'MOV D,E';
+                movD(getE());
                 break;
             case 0x54: 
                 opName = 'MOV D,H';
+                movD(getH());
                 break;
             case 0x55: 
                 opName = 'MOV D,L';
+                movD(getL());
                 break;
             case 0x56: 
                 opName = 'MOV D,M';
+                movD(_bus.memory.data[HL]);
                 break;
             case 0x57: 
                 opName = 'MOV D,A';
+                movD(getA());
                 break;
             case 0x58: 
                 opName = 'MOV E,B';
+                movE(getB());
                 break;
             case 0x59: 
                 opName = 'MOV E,C';
+                movE(getC());
                 break;
             case 0x5A: 
                 opName = 'MOV E,D';
+                movE(getD());
                 break;
             case 0x5B: 
                 opName = 'MOV E,E';
+                movE(getE());
                 break;
             case 0x5C: 
                 opName = 'MOV E,H';
+                movE(getH());
                 break;
             case 0x5D: 
                 opName = 'MOV E,L';
+                movE(getL());
                 break;
             case 0x5E: 
                 opName = 'MOV E,M';
+                movE(_bus.memory.data[HL]);
                 break;
             case 0x5F: 
                 opName = 'MOV E,A';
+                movE(getA());
                 break;
             //0x6X
             case 0x60:
                 opName = 'MOV H,B';
+                movH(getB());
                 break;
             case 0x61: 
                 opName = 'MOV H,C';
+                movH(getC());
                 break;
             case 0x62: 
                 opName = 'MOV H,D';
+                movH(getD());
                 break;
             case 0x63: 
                 opName = 'MOV H,E';
+                movH(getE());
                 break;
             case 0x64: 
                 opName = 'MOV H,H';
+                movH(getH());
                 break;
             case 0x65: 
                 opName = 'MOV H,L';
+                movH(getL());
                 break;
             case 0x66: 
                 opName = 'MOV H,M';
+                movH(_bus.memory.data[HL]);
                 break;
             case 0x67: 
                 opName = 'MOV H,A';
+                movH(getA());
                 break;
             case 0x68: 
                 opName = 'MOV L,B';
+                movL(getB());
                 break;
             case 0x69: 
-                opName = 'MOV L,D';
+                opName = 'MOV L,C';
+                movL(getC());
                 break;
             case 0x6A: 
                 opName = 'MOV L,D';
+                movL(getD());
                 break;
             case 0x6B: 
                 opName = 'MOV L,E';
+                movL(getE());
                 break;
             case 0x6C: 
                 opName = 'MOV L,H';
+                movL(getH());
                 break;
             case 0x6D: 
                 opName = 'MOV L,L';
+                movL(getL());
                 break;
             case 0x6E: 
                 opName = 'MOV L,M';
+                movL(_bus.memory.data[HL]);
                 break;
             case 0x6F: 
                 opName = 'MOV L,A';
+                movL(getA());
                 break;
             //0x7X
             case 0x70:
@@ -383,27 +441,35 @@ var CPU = function(bus){
                 break;
             case 0x78: 
                 opName = 'MOV A,B';
+                movA(getB());
                 break;
             case 0x79: 
                 opName = 'MOV A,C';
+                movA(getC());
                 break;
             case 0x7A: 
                 opName = 'MOV A,D';
+                movA(getD());
                 break;
             case 0x7B: 
                 opName = 'MOV A,E';
+                movA(getE());
                 break;
             case 0x7C: 
                 opName = 'MOV A,H';
+                movA(getH());
                 break;
             case 0x7D: 
                 opName = 'MOV A,L';
+                movA(getL());
                 break;
             case 0x7E: 
                 opName = 'MOV A,M';
+                movA(_bus.memory.data[HL]);
                 break;
             case 0x7F: 
                 opName = 'MOV A,A';
+                movA(getA());
                 break;
             //0x8X
             case 0x80:
@@ -818,24 +884,154 @@ var CPU = function(bus){
             clearBit();
         }
     }
+    //FLAG
+    /* 
+    SZ?(AC)?P?C
+    S   - sign, result is negative
+    Z   - zero, result is zero
+    AC  - Auxiliary/Half Carry, used for binary-coded decimal arithmetic (BCD). 
+    P   - parity, set if number of 1 bits in the results is even
+    C   - carry, set if the last addition operation resulted in a carry or if the last subtraction operation required a borrow
+    */
+    var defaultS = function(value) {
+        if(checkBit(value, 7)) { stS(); }
+        else { clearS(); }
+    }
+    var stS = function() { 
+        movF(setBit(getF(), 7));
+    };
+    var clearS = function() {
+        movF(clearBit(getF(), 7));
+    }
+    var defaultZ = function(value) { 
+        if(value === 0x0) { stZ(); }
+        else if(clearBit(value, 7) === 0x0) { stZ(); } //BCD mode (assumed), negative values
+        else { clearZ(); }
+    };
+    var stZ = function() { 
+        movF(setBit(getF(), 6));
+    };
+    var clearZ = function() {
+        movF(clearBit(getF(), 6));
+    }
+    var defaultP = function(value) {
+        var counter = 0;
+        for(var pI = 0; pI <= 7; pI++) {
+            if(checkBit(value, pI)) { counter++ };
+        }
+        if(counter === 0 || (counter % 2) === 0) { stP(); }
+        else { clearP(); }
+    }
+    var stP = function() { 
+        movF(setBit(getF(), 2));
+    };
+    var clearP = function() {
+        movF(clearBit(getF(), 2));
+    }
+    //AC handled in DAA
+    var stAC = function() { 
+        movF(setBit(getF(), 4));
+    };
+    var clearAC = function() {
+        movF(clearBit(getF(), 4));
+    }
+    //C handled in arth.
+    var stC = function() { 
+        movF(setBit(getF(), 7));
+    };
+    var clearC = function() {
+        movF(clearBit(getF(), 7));
+    }
 
     //standard opcodes
     var NOP = function() {  };
 
-    var movA = function(value) { this.AF = (value << 4) + (this.AF & 0x0F); };
-    var getA = function()      { return this.AF >> 4; };
-    var addA = function(value) {  };
-    var subA = function(value) {  };
-    var inxA = function()      {  };
-    var inrA = function()      {  };
-    var dcxA = function()      {  };
+    var movA = function(value)  { AF = ((value & 0xFF) << 8) + (AF & 0x00FF); };
+    var getA = function()       { return (AF & 0xFF00) >> 8; };
+    var addA = function(value)  {
+        
+    };
+    var subA = function(value)  {
 
-    var movF = function(value) { this.AF = value + (this.AF & 0xF0); };
-    var getF = function()      { return this.AF & 0x0F; };
-    var addF = function(value) {  };
-    var subF = function(value) {  };
-    var incF = function()      {  };
-    var decF = function()      {  };
+    };
+    var inxA = function()       {
+
+    };
+    var inrA = function()       {
+        if(getA()===0xFF) {
+            movA(0x00);
+            stAC();
+        } else {
+            movA(getA() + 0x01);
+            clearAC(); 
+        }
+        defaultZ(getA());
+        defaultS(getA());
+        defaultP(getA());
+    };
+    var dcxA = function()       {
+        
+    };
+    var dcrA = function()       {
+        if(getA() === 0x00) {
+            movA(0xFF);
+            stAC();
+        } else {
+            movA(getA() - 0x01);
+            clearAC(); 
+        }
+        defaultZ(getA());
+        defaultS(getA());
+        defaultP(getA());
+    };
+    var cmA = function()        {
+        movA(0xFF - getA());
+    };
+    var daA = function()        {
+        if((getA() & 0x0F) > 0x09){
+            movA(getA() + 0x06);
+            stAC();
+        }
+        if((getA() >> 4) > 0x09){
+            movA(getA() + (0x06 << 4));
+            stC();
+        }
+        defaultS(getA());
+        defaultZ(getA());
+        defaultP(getA());
+    };
+    var stAX = function(value)      {
+        movA(_bus.memory.data[value]);
+    };
+    var stAXB = function()          {
+        stAX(this.BC);
+    };
+    var stAXD = function()          {
+        stAX(this.DE);
+    };
+
+    var movF = function(value)  { AF = (AF & 0xFF00) + (value & 0xFF); };
+    var getF = function()       { return AF & 0x00FF; };
+    
+    var movB = function(value)  { BC = ((value & 0xFF) << 8) + (BC & 0x00FF); };
+    var getB = function()       { return (BC & 0xFF00) >> 8; };
+    
+    var movC = function(value)  { BC = (BC & 0xFF00) + (value & 0xFF); };
+    var getC = function()       { return BC & 0x00FF; };
+    
+    var movD = function(value)  { DE = ((value & 0xFF) << 8) + (DE & 0x00FF); };
+    var getD = function()       { return (DE & 0xFF00) >> 8; };
+    
+    var movE = function(value)  { DE = (DE & 0xFF00) + (value & 0xFF); };
+    var getE = function()       { return DE & 0x00FF; };
+    
+    var movH = function(value)  { HL = ((value & 0xFF) << 8) + (HL & 0x00FF); };
+    var getH = function()       { return (HL & 0xFF00) >> 8; };
+    
+    var movL = function(value)  { HL = (HL & 0xFF00) + (value & 0xFF); };
+    var getL = function()       { return HL & 0x00FF; };
+
+    var cmc = function()        { if(checkBit(getF(), 7)){ clearC(); } else { stC(); } }
 };
 
 var BUS = function(rom) {
