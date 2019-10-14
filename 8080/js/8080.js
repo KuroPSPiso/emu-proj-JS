@@ -68,6 +68,7 @@ var CPU = function(bus){
                 break;
             case 0x0A: 
                 opName = 'LDAX B';
+                ldAXB();
                 break;
             case 0x0B: 
                 opName = 'DCX B';
@@ -111,7 +112,8 @@ var CPU = function(bus){
                 opName = 'DAD B';
                 break;
             case 0x1A: 
-                opName = 'LDAX B';
+                opName = 'LDAX D';
+                ldAXD();
                 break;
             case 0x1B: 
                 opName = 'DCX D';
@@ -1001,7 +1003,7 @@ var CPU = function(bus){
         defaultP(getA());
     };
     var stAX = function(value)      {
-        movA(_bus.memory.data[value]);
+        _bus.memory.data[value] = getA();
     };
     var stAXB = function()          {
         stAX(this.BC);
@@ -1009,6 +1011,15 @@ var CPU = function(bus){
     var stAXD = function()          {
         stAX(this.DE);
     };
+    var ldAX = function(value)      {
+        movA(_bus.memory.data[value]);
+    }
+    var ldAXB = function()          {
+        ldAX(this.BC);
+    }
+    var ldAXD = function()          {
+        ldAX(this.DE);
+    }
 
     var movF = function(value)  { AF = (AF & 0xFF00) + (value & 0xFF); };
     var getF = function()       { return AF & 0x00FF; };
