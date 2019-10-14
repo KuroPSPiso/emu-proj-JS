@@ -508,27 +508,35 @@ var CPU = function(bus){
                 break;
             case 0x88: 
                 opName = 'ADC B';
+                adcA(getB());
                 break;
             case 0x89: 
                 opName = 'ADC C';
+                adcA(getC());
                 break;
             case 0x8A: 
                 opName = 'ADC D';
+                adcA(getD());
                 break;
             case 0x8B: 
                 opName = 'ADC E';
+                adcA(getE());
                 break;
             case 0x8C: 
                 opName = 'ADC H';
+                adcA(getH());
                 break;
             case 0x8D: 
                 opName = 'ADC L';
+                adcA(getL());
                 break;
             case 0x8E: 
                 opName = 'ADC M';
+                adcA(r8(HL));
                 break;
             case 0x8F: 
                 opName = 'ADC A';
+                adcA(getA());
                 break;
             //0x9X
             case 0x90:
@@ -903,55 +911,58 @@ var CPU = function(bus){
     P   - parity, set if number of 1 bits in the results is even
     C   - carry, set if the last addition operation resulted in a carry or if the last subtraction operation required a borrow
     */
-    var defaultS = function(value) {
-        if(checkBit(value, 7)) { stS(); }
-        else { clearS(); }
+    var defaultSF = function(value) {
+        if(checkBit(value, 7)) { stSF(); }
+        else { clearSF(); }
     }
-    var stS = function() { 
+    var stSF = function() { 
         movF(setBit(getF(), 7));
     };
-    var clearS = function() {
+    var clearSF = function() {
         movF(clearBit(getF(), 7));
     }
-    var defaultZ = function(value) { 
-        if(value === 0x0) { stZ(); }
-        else if(clearBit(value, 7) === 0x0) { stZ(); } //BCD mode (assumed), negative values
-        else { clearZ(); }
+    var defaultZF = function(value) { 
+        if(value === 0x0) { stZF(); }
+        else if(clearBit(value, 7) === 0x0) { stZF(); } //BCD mode (assumed), negative values
+        else { clearZF(); }
     };
-    var stZ = function() { 
+    var stZF = function() { 
         movF(setBit(getF(), 6));
     };
-    var clearZ = function() {
+    var clearZF = function() {
         movF(clearBit(getF(), 6));
     }
-    var defaultP = function(value) {
+    var defaultPF = function(value) {
         var counter = 0;
         for(var pI = 0; pI <= 7; pI++) {
             if(checkBit(value, pI)) { counter++ };
         }
-        if(counter === 0 || (counter % 2) === 0) { stP(); }
-        else { clearP(); }
+        if(counter === 0 || (counter % 2) === 0) { stPF(); }
+        else { clearPF(); }
     }
-    var stP = function() { 
+    var stPF = function() { 
         movF(setBit(getF(), 2));
     };
-    var clearP = function() {
+    var clearPF = function() {
         movF(clearBit(getF(), 2));
     }
     //AC handled in DAA
-    var stAC = function() { 
+    var stACF = function() { 
         movF(setBit(getF(), 4));
     };
-    var clearAC = function() {
+    var clearACF = function() {
         movF(clearBit(getF(), 4));
-    }
+    };
     //C handled in arth.
-    var stC = function() { 
+    var stCF = function() { 
         movF(setBit(getF(), 7));
     };
-    var clearC = function() {
+    var clearCF = function() {
         movF(clearBit(getF(), 7));
-    }
+    };
+    var getCF = function() {
+        return getF() >> 7;
+    };
 
     //standard opcodes
     var NOP = function() {  };
@@ -961,13 +972,23 @@ var CPU = function(bus){
     var addA = function(value)  {
         var data = getA() + value;
         var half = getA() & 0x0F + value & 0x0F;
-        if(data > 0xFF) stC();
-        if(half > 0x0F) stAC();
+        if(data > 0xFF) stCF();
+        if(half > 0x0F) stACF();
         data = data & 0xFF;
-        defaultZ(data);
-        defaultP(data);
-        defaultS(data);
-        console.log(`${getA().toString()} + ${data}`);
+        defaultZF(data);
+        defaultPF(data);
+        defaultSF(data);
+        movA(data);
+    };
+    var adcA = function(value)  {
+        var data = getA() + value + getCF();
+        var half = getA() & 0x0F + value & 0x0F + getCF();
+        if(data > 0xFF) stCF();
+        if(half > 0x0F) stACF();
+        data = data & 0xFF;
+        defaultZF(data);
+        defaultPF(data);
+        defaultSF(data);
         movA(data);
     };
     var subA = function(value)  {
@@ -979,14 +1000,14 @@ var CPU = function(bus){
     var inrA = function()       {
         if(getA()===0xFF) {
             movA(0x00);
-            stAC();
+            stACF();
         } else {
             movA(getA() + 0x01);
-            clearAC(); 
+            clearACF(); 
         }
-        defaultZ(getA());
-        defaultS(getA());
-        defaultP(getA());
+        defaultZF(getA());
+        defaultSF(getA());
+        defaultPF(getA());
     };
     var dcxA = function()       {
         
@@ -994,14 +1015,14 @@ var CPU = function(bus){
     var dcrA = function()       {
         if(getA() === 0x00) {
             movA(0xFF);
-            stAC();
+            stACF();
         } else {
             movA(getA() - 0x01);
-            clearAC(); 
+            clearACF(); 
         }
-        defaultZ(getA());
-        defaultS(getA());
-        defaultP(getA());
+        defaultZF(getA());
+        defaultSF(getA());
+        defaultPF(getA());
     };
     var cmA = function()        {
         movA(0xFF - getA());
@@ -1009,15 +1030,15 @@ var CPU = function(bus){
     var daA = function()        {
         if((getA() & 0x0F) > 0x09){
             movA(getA() + 0x06);
-            stAC();
+            stACF();
         }
         if((getA() >> 4) > 0x09){
             movA(getA() + (0x06 << 4));
-            stC();
+            stCF();
         }
-        defaultS(getA());
-        defaultZ(getA());
-        defaultP(getA());
+        defaultSF(getA());
+        defaultZF(getA());
+        defaultPF(getA());
     };
     var stAX = function(loc)      {
         w8(getA(), loc);
@@ -1059,7 +1080,7 @@ var CPU = function(bus){
     var movL = function(value)  { HL = (HL & 0xFF00) + (value & 0xFF); };
     var getL = function()       { return HL & 0x00FF; };
 
-    var cmc = function()        { if(checkBit(getF(), 7)){ clearC(); } else { stC(); } }
+    var cmc = function()        { if(checkBit(getF(), 7)){ clearCF(); } else { stCF(); } }
 
     //RAM ACCESS
     var r8 = function(loc)          {
