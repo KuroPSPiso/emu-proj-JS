@@ -541,27 +541,35 @@ var CPU = function(bus){
             //0x9X
             case 0x90:
                 opName = 'SUB B';
+                subA(getB());
                 break;
             case 0x91: 
                 opName = 'SUB C';
+                subA(getC());
                 break;
             case 0x92: 
                 opName = 'SUB D';
+                subA(getD());
                 break;
             case 0x93: 
                 opName = 'SUB E';
+                subA(getE());
                 break;
             case 0x94: 
                 opName = 'SUB H';
+                subA(getH());
                 break;
             case 0x95: 
                 opName = 'SUB L';
+                subA(getL());
                 break;
             case 0x96: 
                 opName = 'SUB M';
+                subA(r8(HL));
                 break;
             case 0x97: 
                 opName = 'SUB A';
+                subA(getA());
                 break;
             case 0x98: 
                 opName = 'SBB B';
@@ -992,7 +1000,32 @@ var CPU = function(bus){
         movA(data);
     };
     var subA = function(value)  {
+        // var upperNibbleA = getA() >> 4;
+        // var lowerNibbleA = getA() & 0x0F;
+        // var resUpperNibble = 0x0;
+        // var upperNibbleV = value >> 4;
+        // var lowerNibbleV = value & 0x0F;
+        // var resLowerNibble = 0x0;
 
+        // if(upperNibbleV > upperNibbleA) {
+        //     stCF();
+        //     resUpperNibble = (0xF + upperNibbleA) - upperNibbleV;
+        // } else {
+        //     resUpperNibble = upperNibbleA - upperNibbleV
+        // }
+        // if(lowerNibbleV > lowerNibbleA) {
+        //     stACF();
+        //     resLowerNibble = (0xF + lowerNibbleA) - lowerNibbleV;
+        // } else {
+        //     resLowerNibble = lowerNibbleA - lowerNibbleV
+        // }
+        // var data = (resUpperNibble << 4) + resLowerNibble;
+        // movA(data);
+        // defaultZF(data);
+        // defaultPF(data);
+        // defaultSF(data);
+        //documentation solution, compliment value and use ADD. (unable to fetch carry, unless inverse is expected)
+        addA((0xFF-value) + 0x01);
     };
     var inxA = function()       {
 
