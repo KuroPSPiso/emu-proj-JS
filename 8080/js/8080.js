@@ -606,76 +606,100 @@ var CPU = function(bus){
             //0xAX
             case 0xA0:
                 opName = 'ANA B';
+                anA(getB());
                 break;
             case 0xA1: 
                 opName = 'ANA C';
+                anA(getC());
                 break;
             case 0xA2: 
                 opName = 'ANA D';
+                anA(getD());
                 break;
             case 0xA3: 
                 opName = 'ANA E';
+                anA(getE());
                 break;
             case 0xA4: 
                 opName = 'ANA H';
+                anA(getH());
                 break;
             case 0xA5: 
                 opName = 'ANA L';
+                anA(getL());
                 break;
             case 0xA6: 
                 opName = 'ANA M';
+                anA(r8(HL));
                 break;
             case 0xA7: 
                 opName = 'ANA A';
+                anA(getA());
                 break;
             case 0xA8: 
                 opName = 'XRA B';
+                xrA(getB());
                 break;
             case 0xA9: 
                 opName = 'XRA C';
+                xrA(getC());
                 break;
             case 0xAA: 
                 opName = 'XRA D';
+                xrA(getD());
                 break;
             case 0xAB: 
                 opName = 'XRA E';
+                xrA(getE());
                 break;
             case 0xAC: 
                 opName = 'XRA H';
+                xrA(getH());
                 break;
             case 0xAD: 
                 opName = 'XRA L';
+                xrA(getL());
                 break;
             case 0xAE: 
                 opName = 'XRA M';
+                xrA(r8(HL));
                 break;
             case 0xAF: 
                 opName = 'XRA A';
+                xrA(getA());
                 break;
             //0xBX
             case 0xB0:
                 opName = 'ORA B';
+                orA(getB());
                 break;
             case 0xB1: 
                 opName = 'ORA C';
+                orA(getC());
                 break;
             case 0xB2: 
                 opName = 'ORA D';
+                orA(getD());
                 break;
             case 0xB3: 
                 opName = 'ORA E';
+                orA(getE());
                 break;
             case 0xB4: 
                 opName = 'ORA H';
+                orA(getH());
                 break;
             case 0xB5: 
                 opName = 'ORA L';
+                orA(getL());
                 break;
             case 0xB6: 
                 opName = 'ORA M';
+                orA(r8(HL));
                 break;
             case 0xB7: 
                 opName = 'ORA A';
+                orA(getA());
                 break;
             case 0xB8: 
                 opName = 'CMP B';
@@ -1037,7 +1061,31 @@ var CPU = function(bus){
     };
     var sbbA = function(value)  {
         addA(((0xFF-value) + 0x01)+getCF());
-    }
+    };
+    var anA = function(value)   {
+        movA(getA() & value);
+        clearCF();
+        //clearANA();
+        defaultZF(getA());
+        defaultSF(getA());
+        defaultPF(getA());
+    };
+    var xrA = function(value)   {
+        movA(getA ^ value);
+        clearCF();
+        //clearANA();
+        defaultZF(getA());
+        defaultSF(getA());
+        defaultPF(getA());
+    };
+    var orA = function(value)   {
+        movA(getA | value);
+        clearCF();
+        //clearANA();
+        defaultZF(getA());
+        defaultSF(getA());
+        defaultPF(getA());
+    };
     var inxA = function()       {
 
     };
