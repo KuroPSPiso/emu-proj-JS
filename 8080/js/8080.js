@@ -62,6 +62,7 @@ var CPU = function(bus){
                 break;
             case 0x07: 
                 opName = 'RLC';
+                rlc();
                 break;
             case 0x09: 
                 opName = 'DAD B';
@@ -84,6 +85,7 @@ var CPU = function(bus){
                 break;
             case 0x0F: 
                 opName = 'RRC';
+                rrc();
                 break;
             //0x1X
             case 0x11: 
@@ -107,6 +109,7 @@ var CPU = function(bus){
                 break;
             case 0x17: 
                 opName = 'RAL';
+                ral();
                 break;
             case 0x19: 
                 opName = 'DAD B';
@@ -129,6 +132,7 @@ var CPU = function(bus){
                 break;
             case 0x1F: 
                 opName = 'RAR';
+                rar();
                 break;
             //0x2X
             case 0x21: 
@@ -1188,7 +1192,7 @@ var CPU = function(bus){
     var getL = function()       { return HL & 0x00FF; };
 
     var cmc = function()        { if(checkBit(getF(), 7)){ clearCF(); } else { stCF(); } }
-    var cmp = function(value)        {
+    var cmp = function(value)   {
         var data = (0xFF - value + 0x01) + getA();
         var half = (0xF - (value & 0x0F)) + (getA() & 0x0F);
         if(data > 0xFF) clearCF(); else stCF();
@@ -1198,6 +1202,28 @@ var CPU = function(bus){
         defaultPF(data);
         defaultZF(data);
         defaultSF(data);
+    }
+    var rlc = function()        {
+        var data = checkBit(getA(), 7);
+        movA(((getA() << 1) & 0xFF) + data);
+        if(data) stCF(); else clearCF();
+    }
+    var rrc = function()        {
+        var data = checkBit(getA(), 0);
+        movA((getA() >> 1) + (data << 7));
+        if(data) stCF(); else clearCF();
+    }
+    var ral = function()        {
+        var data = checkBit(getA(), 7);
+        var c = getCF();
+        movA(((getA() << 1) & 0xFF) + c);
+        if(data) stCF(); else clearCF();
+    }
+    var rar = function()        {
+        var data = checkBit(getA(), 0);
+        var c = getCF();
+        movA((getA() >> 1) + (c << 7));
+        if(data) stCF(); else clearCF();
     }
 
     //RAM ACCESS
