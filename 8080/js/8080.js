@@ -868,6 +868,7 @@ var CPU = function(bus){
                 break;
             case 0xE3: 
                 opName = 'XTHL';
+                xthl();
                 break;
             case 0xE4: 
                 opName = 'CPO MM';
@@ -893,6 +894,7 @@ var CPU = function(bus){
                 break;
             case 0xEB: 
                 opName = 'XCHG';
+                xchg();
                 break;
             case 0xEC: 
                 opName = 'CPE MM';
@@ -934,7 +936,8 @@ var CPU = function(bus){
                 opName = 'RM';
                 break;
             case 0xF9: 
-                opName = 'SHPL';
+                opName = 'SPHL';
+                sphl();
                 break;
             case 0xFA: 
                 opName = 'JM MM';
@@ -1262,9 +1265,9 @@ var CPU = function(bus){
     var push = function(loc)    {
         var pt1 = loc >> 8;
         var pt2 = loc & 0xFF;
-        _bus.memory.pushSP(getSP(), pt1);
+        _bus.memory.pushSP(pt1, getSP());
         dcxSP();
-        _bus.memory.pushSP(getSP(), pt2);
+        _bus.memory.pushSP(pt2, getSP());
         dcxSP();
     };
     var pop = function()        {
@@ -1326,7 +1329,8 @@ var CPU = function(bus){
     var xthl = function()       {
         var data = HL;
         HL = r16(SP, SP + 0x0001);
-        w16(SP, SP + 0x0001, data);
+        w16(data, SP, SP + 0x0001);
+        console.log(`SP(${SP}):${HL} <= ${data} :: ${ r16(SP, SP + 0x0001)}`);
     };
     var sphl = function()       {
         SP = HL;
@@ -1363,8 +1367,8 @@ var RAM = function (size) {
 
     //this.stack = []; //can't find default location for STACK (temp solution), same size as stack
     for(var dI = 0; dI < size; dI++){
-        this.data.push(0); //clear default data
-        this.stack.push(0); //clear default data
+        this.data.push(0x00); //clear default data
+        // this.stack.push(0); //clear default data
     }
 
     this.read8 = function(loc){
@@ -1375,7 +1379,7 @@ var RAM = function (size) {
         this.data[loc] = value;
     }
 
-    this.pushSP = function(loc, value){
+    this.pushSP = function(value, loc){
         this.data[loc] = value;
     }
     this.popSP = function(loc){
