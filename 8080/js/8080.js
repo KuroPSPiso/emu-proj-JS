@@ -27,7 +27,7 @@ var CPU = function(bus){
     this.H  = function() { return getH(); };
     this.L  = function() { return getL(); };
     this.HL = function() { return (getH() << 8) + getL(); };
-    this.debug = function() { return `AF(${this.AF().toString(16).padLeft(4, '0').toUpperCase()}),BC(${this.BC().toString(16).padLeft(4, '0').toUpperCase()}),DE(${this.DE().toString(16).padLeft(4, '0').toUpperCase()}),HL(${this.HL().toString(16).padLeft(4, '0').toUpperCase()}),PC(${PC.toString(16).padLeft(4, '0').toUpperCase()}),TICK(${this.getTick().toString().padLeft(10, '0').toUpperCase()}),OPNAME(${this.getOpName().toString().padLeft(9, '_')}),PC_CARRY(${this.getPC_CARRY()})`}
+    this.debug = function() { return `AF(${this.AF().toString(16).padLeft(4, '0').toUpperCase()}),BC(${this.BC().toString(16).padLeft(4, '0').toUpperCase()}),DE(${this.DE().toString(16).padLeft(4, '0').toUpperCase()}),HL(${this.HL().toString(16).padLeft(4, '0').toUpperCase()}),PC(${PC.toString(16).padLeft(4, '0').toUpperCase()}),SP(${SP.toString(16).padLeft(4, '0').toUpperCase()}),TICK(${this.getTick().toString().padLeft(10, '0').toUpperCase()}),OPNAME(${this.getOpName().toString().padLeft(9, '_')}),PC_CARRY(${this.getPC_CARRY()})`}
 
     this.exec = function(debugOpcode){
         PC_CARRY = 0;
@@ -51,6 +51,7 @@ var CPU = function(bus){
                 break;
             case 0x03: 
                 opName = 'INX B';
+                inxBC();
                 break;
             case 0x04: 
                 opName = 'INR B';
@@ -67,6 +68,7 @@ var CPU = function(bus){
                 break;
             case 0x09: 
                 opName = 'DAD B';
+                dad(BC);
                 break;
             case 0x0A: 
                 opName = 'LDAX B';
@@ -74,6 +76,7 @@ var CPU = function(bus){
                 break;
             case 0x0B: 
                 opName = 'DCX B';
+                dcxBC();
                 break;
             case 0x0C: 
                 opName = 'INR C';
@@ -98,6 +101,7 @@ var CPU = function(bus){
                 break;
             case 0x13: 
                 opName = 'INX D';
+                inxDE();
                 break;
             case 0x14: 
                 opName = 'INR D';
@@ -113,7 +117,8 @@ var CPU = function(bus){
                 ral();
                 break;
             case 0x19: 
-                opName = 'DAD B';
+                opName = 'DAD D';
+                dad(DE);
                 break;
             case 0x1A: 
                 opName = 'LDAX D';
@@ -121,6 +126,7 @@ var CPU = function(bus){
                 break;
             case 0x1B: 
                 opName = 'DCX D';
+                dcxDE();
                 break;
             case 0x1C: 
                 opName = 'INR E';
@@ -144,6 +150,7 @@ var CPU = function(bus){
                 break;
             case 0x23: 
                 opName = 'INX H';
+                inxHL();
                 break;
             case 0x24: 
                 opName = 'INR H';
@@ -160,12 +167,14 @@ var CPU = function(bus){
                 break;
             case 0x29: 
                 opName = 'DAD H';
+                dad(HL);
                 break;
             case 0x2A: 
                 opName = 'LHLD';
                 break;
             case 0x2B: 
                 opName = 'DCX H';
+                dcxHL();
                 break;
             case 0x2C: 
                 opName = 'INR L';
@@ -189,6 +198,7 @@ var CPU = function(bus){
                 break;
             case 0x33: 
                 opName = 'INX SP';
+                inxSP();
                 break;
             case 0x34: 
                 opName = 'INR M';
@@ -204,12 +214,14 @@ var CPU = function(bus){
                 break;
             case 0x39: 
                 opName = 'DAD SP';
+                dad(SP);
                 break;
             case 0x3A: 
                 opName = 'LDA';
                 break;
             case 0x3B: 
                 opName = 'DCX SP';
+                dcxSP();
                 break;
             case 0x3C: 
                 opName = 'INR A';
@@ -1187,12 +1199,18 @@ var CPU = function(bus){
     
     var movC = function(value)  { BC = (BC & 0xFF00) + (value & 0xFF); };
     var getC = function()       { return BC & 0x00FF; };
+
+    var inxBC = function()      { BC = inx(BC); }
+    var dcxBC = function()      { BC = dcx(BC); }
     
     var movD = function(value)  { DE = ((value & 0xFF) << 8) + (DE & 0x00FF); };
     var getD = function()       { return (DE & 0xFF00) >> 8; };
     
     var movE = function(value)  { DE = (DE & 0xFF00) + (value & 0xFF); };
     var getE = function()       { return DE & 0x00FF; };
+
+    var inxDE = function()      { DE = inx(DE); }
+    var dcxDE = function()      { DE = dcx(DE); }
     
     var movH = function(value)  { HL = ((value & 0xFF) << 8) + (HL & 0x00FF); };
     var getH = function()       { return (HL & 0xFF00) >> 8; };
@@ -1200,9 +1218,12 @@ var CPU = function(bus){
     var movL = function(value)  { HL = (HL & 0xFF00) + (value & 0xFF); };
     var getL = function()       { return HL & 0x00FF; };
 
+    var inxHL = function()      { HL = inx(HL); }
+    var dcxHL = function()      { HL = dcx(HL); }
+
     var getSP = function()      { return SP & 0xFFFF; };
-    var incSP = function()      { SP++; if(SP>0xFFFF) SP = 0x00; };
-    var decSP = function()      { SP--; if(SP - 0xFFFF > 0xFFFF) SP = 0xFFFF; };
+    var inxSP = function()      { SP = inx(SP); };
+    var dcxSP = function()      { SP = dcx(SP); };
 
     var cmc = function()        { if(checkBit(getF(), 7)){ clearCF(); } else { stCF(); } };
     var cmp = function(value)   {
@@ -1242,15 +1263,15 @@ var CPU = function(bus){
         var pt1 = loc >> 8;
         var pt2 = loc & 0xFF;
         _bus.memory.pushSP(getSP(), pt1);
-        decSP();
+        dcxSP();
         _bus.memory.pushSP(getSP(), pt2);
-        decSP();
+        dcxSP();
     };
     var pop = function()        {
         var pt2 = _bus.memory.popSP(getSP()) & 0xFF;
-        incSP();
+        inxSP();
         var pt1 = _bus.memory.popSP(getSP()) >> 8;
-        incSP();
+        inxSP();
     };
     var pushPSW = function()    {
         push(AF);
@@ -1284,26 +1305,49 @@ var CPU = function(bus){
         movH(data >> 8);
         movL(data & 0x0F);
     };
-    var dad = function(value)        {
-
+    var dad = function(value)   {
+        var data = value + HL;
+        if(data > 0xFFFF) stCF(); else clearCF();
+        data &= 0xFFFF;
+        movH(data >> 8);
+        movL(data & 0x00FF);
+    };
+    var inx = function(value)   {
+        value++; if(value>0xFFFF) value = 0x00;
+        return value;
+    };
+    var dcx = function(value)   {
+        value--; if(0xFFFF - value + 0x0001 > 0xFFFF) value = 0xFFFF;
+        return value;
+    };
+    var xchg = function()       {
+        HL = DE;
+    };
+    var xthl = function()       {
+        var data = HL;
+        HL = r16(SP, SP + 0x0001);
+        w16(SP, SP + 0x0001, data);
+    };
+    var sphl = function()       {
+        SP = HL;
     };
 
     //RAM ACCESS
-    var r8 = function(loc)          {
+    var r8 = function(loc)                      {
         cycles++;
         return _bus.memory.read8(loc);
-    }
-    var r16 = function(loc1, loc2)  { //littleEndian
-        return (r8(loc2) << 8) + r8(loc1);
-    }
-    var w8 = function(value, loc)   {
+    };
+    var r16 = function(loc1, loc2)              { //littleEndian
+        return (r8(loc2) << 8) + (r8(loc1) & 0x00FF);
+    };
+    var w8 = function(value, loc)               {
         cycles++;
         _bus.memory.write8(value, loc);
-    }
-    var write16 = function(value, loc1, loc2){
+    };
+    var w16 = function(value, loc1, loc2)   {
         w8(value >> 8, loc2);
-        w8(value & 0x0F, loc1);
-    }
+        w8(value & 0x00FF, loc1);
+    };
 };
 
 var BUS = function(rom) {
@@ -1317,7 +1361,7 @@ var BUS = function(rom) {
 var RAM = function (size) {
     this.data = []; //create array object for RAM (contains STACK)
 
-    this.stack = []; //can't find default location for STACK (temp solution), same size as stack
+    //this.stack = []; //can't find default location for STACK (temp solution), same size as stack
     for(var dI = 0; dI < size; dI++){
         this.data.push(0); //clear default data
         this.stack.push(0); //clear default data
@@ -1332,11 +1376,11 @@ var RAM = function (size) {
     }
 
     this.pushSP = function(loc, value){
-        this.stack[loc] = value;
+        this.data[loc] = value;
     }
     this.popSP = function(loc){
-        var data = this.stack[loc];
-        this.stack[loc] = 0xFF; //clear
+        var data = this.data[loc];
+        //this.data[loc] = 0xFF; //clear(?)
         return data;
     }
 }
