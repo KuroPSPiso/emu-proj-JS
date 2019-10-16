@@ -703,27 +703,35 @@ var CPU = function(bus){
                 break;
             case 0xB8: 
                 opName = 'CMP B';
+                cmp(getB());
                 break;
             case 0xB9: 
                 opName = 'CMP C';
+                cmp(getC());
                 break;
             case 0xBA: 
                 opName = 'CMP D';
+                cmp(getD());
                 break;
             case 0xBB: 
                 opName = 'CMP E';
+                cmp(getE());
                 break;
             case 0xBC: 
                 opName = 'CMP H';
+                cmp(getH());
                 break;
             case 0xBD: 
                 opName = 'CMP L';
+                cmp(getL());
                 break;
             case 0xBE: 
                 opName = 'CMP M';
+                cmp(r8(HL));
                 break;
             case 0xBF: 
                 opName = 'CMP A';
+                cmp(getA());
                 break;
             //0xCX
             case 0xC0:
@@ -1011,7 +1019,7 @@ var CPU = function(bus){
     var getA = function()       { return (AF & 0xFF00) >> 8; };
     var addA = function(value)  {
         var data = getA() + value;
-        var half = getA() & 0x0F + value & 0x0F;
+        var half = (getA() & 0x0F) + (value & 0x0F);
         if(data > 0xFF) stCF();
         if(half > 0x0F) stACF();
         data = data & 0xFF;
@@ -1022,7 +1030,7 @@ var CPU = function(bus){
     };
     var adcA = function(value)  {
         var data = getA() + value + getCF();
-        var half = getA() & 0x0F + value & 0x0F + getCF();
+        var half = (getA() & 0x0F) + (value & 0x0F) + getCF();
         if(data > 0xFF) stCF();
         if(half > 0x0F) stACF();
         data = data & 0xFF;
@@ -1173,6 +1181,17 @@ var CPU = function(bus){
     var getL = function()       { return HL & 0x00FF; };
 
     var cmc = function()        { if(checkBit(getF(), 7)){ clearCF(); } else { stCF(); } }
+    var cmp = function(value)        {
+        var data = (0xFF - value + 0x01) + getA();
+        var half = (0xF - (value & 0x0F)) + (getA() & 0x0F);
+        if(data > 0xFF) clearCF(); else stCF();
+        if(half > 0xF) clearACF(); else stACF();
+        console.log(data,half);
+        data &= 0xFF;
+        defaultPF(data);
+        defaultZF(data);
+        defaultSF(data);
+    }
 
     //RAM ACCESS
     var r8 = function(loc)          {
