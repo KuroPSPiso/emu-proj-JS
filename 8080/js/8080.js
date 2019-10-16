@@ -5,6 +5,7 @@ var CPU = function(bus){
     var PC = SP = 0x0000;               //pointers (16-bit registers)
 
     AF = 0x0002;
+    SP = 0xFFFF;
     //not part of actual cpu (helpers)
     var opName = 'NOP';
     var tick = cycles = PC_CARRY = 0; //manual reset on first fetch (?check if usable)
@@ -750,6 +751,7 @@ var CPU = function(bus){
                 break;
             case 0xC1: 
                 opName = 'POP B';
+                popBC();
                 break;
             case 0xC2: 
                 opName = 'JNZ';
@@ -763,6 +765,7 @@ var CPU = function(bus){
                 break;
             case 0xC5: 
                 opName = 'PUSH B';
+                pushBC();
                 break;
             case 0xC6: 
                 opName = 'ADI';
@@ -801,6 +804,7 @@ var CPU = function(bus){
                 break;
             case 0xD1: 
                 opName = 'POP D';
+                popDE();
                 break;
             case 0xD2: 
                 opName = 'JNC';
@@ -813,6 +817,7 @@ var CPU = function(bus){
                 break;
             case 0xD5: 
                 opName = 'PUSH D';
+                pushDE();
                 break;
             case 0xD6: 
                 opName = 'SUI M';
@@ -844,6 +849,7 @@ var CPU = function(bus){
                 break;
             case 0xE1: 
                 opName = 'POP H';
+                popHL();
                 break;
             case 0xE2: 
                 opName = 'JNP MM';
@@ -856,6 +862,7 @@ var CPU = function(bus){
                 break;
             case 0xE5: 
                 opName = 'PUSH H';
+                pushHL();
                 break;
             case 0xE6: 
                 opName = 'ANI M';
@@ -890,6 +897,7 @@ var CPU = function(bus){
                 break;
             case 0xF1: 
                 opName = 'POP PSW';
+                popPSW();
                 break;
             case 0xF2: 
                 opName = 'JP MM';
@@ -902,6 +910,7 @@ var CPU = function(bus){
                 break;
             case 0xF5: 
                 opName = 'PUSH PSW';
+                pushPSW();
                 break;
             case 0xF6: 
                 opName = 'ORI M';
@@ -1191,7 +1200,11 @@ var CPU = function(bus){
     var movL = function(value)  { HL = (HL & 0xFF00) + (value & 0xFF); };
     var getL = function()       { return HL & 0x00FF; };
 
-    var cmc = function()        { if(checkBit(getF(), 7)){ clearCF(); } else { stCF(); } }
+    var getSP = function()      { return SP & 0xFFFF; };
+    var incSP = function()      { SP++; if(SP>0xFFFF) SP = 0x00; };
+    var decSP = function()      { SP--; if(SP - 0xFFFF > 0xFFFF) SP = 0xFFFF; };
+
+    var cmc = function()        { if(checkBit(getF(), 7)){ clearCF(); } else { stCF(); } };
     var cmp = function(value)   {
         var data = (0xFF - value + 0x01) + getA();
         var half = (0xF - (value & 0x0F)) + (getA() & 0x0F);
@@ -1202,29 +1215,78 @@ var CPU = function(bus){
         defaultPF(data);
         defaultZF(data);
         defaultSF(data);
-    }
+    };
     var rlc = function()        {
         var data = checkBit(getA(), 7);
         movA(((getA() << 1) & 0xFF) + data);
         if(data) stCF(); else clearCF();
-    }
+    };
     var rrc = function()        {
         var data = checkBit(getA(), 0);
         movA((getA() >> 1) + (data << 7));
         if(data) stCF(); else clearCF();
-    }
+    };
     var ral = function()        {
         var data = checkBit(getA(), 7);
         var c = getCF();
         movA(((getA() << 1) & 0xFF) + c);
         if(data) stCF(); else clearCF();
-    }
+    };
     var rar = function()        {
         var data = checkBit(getA(), 0);
         var c = getCF();
         movA((getA() >> 1) + (c << 7));
         if(data) stCF(); else clearCF();
-    }
+    };
+    var push = function(loc)    {
+        var pt1 = loc >> 8;
+        var pt2 = loc & 0xFF;
+        _bus.memory.pushSP(getSP(), pt1);
+        decSP();
+        _bus.memory.pushSP(getSP(), pt2);
+        decSP();
+    };
+    var pop = function()        {
+        var pt2 = _bus.memory.popSP(getSP()) & 0xFF;
+        incSP();
+        var pt1 = _bus.memory.popSP(getSP()) >> 8;
+        incSP();
+    };
+    var pushPSW = function()    {
+        push(AF);
+    };
+    var pushBC = function()     {
+        push(BC);
+    };
+    var pushDE = function()     {
+        push(DE);
+    };
+    var pushHL = function()     {
+        push(HL);
+    };
+    var popPSW = function()     {
+        var data = pop();
+        movA(data >> 8);
+        movF(data & 0x0F);
+    };
+    var popBC = function()      {
+        var data = pop();
+        movB(data >> 8);
+        movC(data & 0x0F);
+    };
+    var popDE = function()      {
+        var data = pop();
+        movD(data >> 8);
+        movE(data & 0x0F);
+    };
+    var popHL = function()      {
+        var data = pop();
+        movH(data >> 8);
+        movL(data & 0x0F);
+    };
+    var dad = function(value)        {
+
+    };
 
     //RAM ACCESS
     var r8 = function(loc)          {
@@ -1254,8 +1316,11 @@ var BUS = function(rom) {
 
 var RAM = function (size) {
     this.data = []; //create array object for RAM (contains STACK)
+
+    this.stack = []; //can't find default location for STACK (temp solution), same size as stack
     for(var dI = 0; dI < size; dI++){
         this.data.push(0); //clear default data
+        this.stack.push(0); //clear default data
     }
 
     this.read8 = function(loc){
@@ -1264,5 +1329,14 @@ var RAM = function (size) {
 
     this.write8 = function(value, loc){
         this.data[loc] = value;
+    }
+
+    this.pushSP = function(loc, value){
+        this.stack[loc] = value;
+    }
+    this.popSP = function(loc){
+        var data = this.stack[loc];
+        this.stack[loc] = 0xFF; //clear
+        return data;
     }
 }
