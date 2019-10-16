@@ -419,27 +419,34 @@ var CPU = function(bus){
             //0x7X
             case 0x70:
                 opName = 'MOV M,B';
+                w8(getB(), HL);
                 break;
             case 0x71: 
                 opName = 'MOV M,C';
+                w8(getC(), HL);
                 break;
             case 0x72: 
                 opName = 'MOV M,D';
+                w8(getD(), HL);
                 break;
             case 0x73: 
                 opName = 'MOV M,E';
+                w8(getE(), HL);
                 break;
             case 0x74: 
                 opName = 'MOV M,H';
+                w8(getH(), HL);
                 break;
             case 0x75: 
                 opName = 'MOV M,L';
+                w8(getL(), HL);
                 break;
             case 0x76: 
                 opName = 'HLT';
                 break;
             case 0x77: 
                 opName = 'MOV M,A';
+                w8(getA(), HL);
                 break;
             case 0x78: 
                 opName = 'MOV A,B';
