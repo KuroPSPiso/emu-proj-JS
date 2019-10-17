@@ -33,7 +33,16 @@ var CPU = function(bus){
         PC_CARRY = 0;
         var pc = getPC();
         if(typeof debugOpcode != 'undefined' && debugOpcode != null) pc = debugOpcode;
-        scan(pc);
+        scan(fetch8(pc));
+    }
+
+    var fetch8 = function(pc){
+        return r8(pc);
+    }
+
+    var fetch16 = function(pc){
+        cycles++;
+        return r16(pc, getPC());
     }
 
     var scan = function(opcode){
@@ -151,6 +160,7 @@ var CPU = function(bus){
                 break;
             case 0x22: 
                 opName = 'SHLD';
+                sHLd();
                 break;
             case 0x23: 
                 opName = 'INX H';
@@ -176,6 +186,7 @@ var CPU = function(bus){
                 break;
             case 0x2A: 
                 opName = 'LHLD';
+                lHLd();
                 break;
             case 0x2B: 
                 opName = 'DCX H';
@@ -201,6 +212,7 @@ var CPU = function(bus){
                 break;
             case 0x32: 
                 opName = 'STA';
+                stA();
                 break;
             case 0x33: 
                 opName = 'INX SP';
@@ -225,6 +237,7 @@ var CPU = function(bus){
                 break;
             case 0x3A: 
                 opName = 'LDA';
+                ldA();
                 break;
             case 0x3B: 
                 opName = 'DCX SP';
@@ -1145,9 +1158,6 @@ var CPU = function(bus){
         defaultSF(getA());
         defaultPF(getA());
     };
-    var inxA = function()       {
-
-    };
     var inrA = function()       {
         if(getA()===0xFF) {
             movA(0x00);
@@ -1209,15 +1219,27 @@ var CPU = function(bus){
     var ldAXD = function()      {
         ldAX(this.DE);
     }
-    var mviA = function()       { movA(getPC()); };
-    var adiA = function()       { addA(getPC()); };
-    var aciA = function()       { adcA(getPC()); };
-    var suiA = function()       { subA(getPC()); };
-    var sbiA = function()       { sbbA(getPC()); };
-    var aniA = function()       { anA(getPC()); };
-    var xriA = function()       { xrA(getPC()); };
-    var oriA = function()       { orA(getPC()); };
-    var cpiA = function()       { cmp(getPC()); };
+    var mviA = function()       { movA(fetch8(getPC())); };
+    var adiA = function()       { addA(fetch8(getPC())); };
+    var aciA = function()       { adcA(fetch8(getPC())); };
+    var suiA = function()       { subA(fetch8(getPC())); };
+    var sbiA = function()       { sbbA(fetch8(getPC())); };
+    var aniA = function()       { anA(fetch8(getPC())); };
+    var xriA = function()       { xrA(fetch8(getPC())); };
+    var oriA = function()       { orA(fetch8(getPC())); };
+    var cpiA = function()       { cmp(fetch8(getPC())); };
+    var stA = function()        { w8(getA(), (fetch8(getPC()) & 0x00FF) + (fetch8(getPC()) << 8)); };
+    var ldA = function()        { movA(r8((fetch8(getPC()) & 0x00FF) + (fetch8(getPC()) << 8))); };
+    var sHLd = function()       { 
+        var loc = (fetch8(getPC()) & 0x00FF) + (fetch8(getPC()) << 8);
+        w8(getL(), loc); 
+        w8(getH(), loc + 0x01); 
+    };
+    var lHLd = function()       {
+        var loc = (fetch8(getPC()) & 0x00FF) + (fetch8(getPC()) << 8);
+        movL(r8(loc)); 
+        movH(r8(loc + 0x01)); 
+    }
 
     var movF = function(value)  { AF = (AF & 0xFF00) + (value & 0xFF); };
     var getF = function()       { return AF & 0x00FF; };
@@ -1387,11 +1409,23 @@ var CPU = function(bus){
 };
 
 var BUS = function(rom) {
-    this.rom = rom; //loaded into ram
+    this.rom = rom; //to be loaded into ram(?)
     this.memory = null; //used by cpu
     this.cpu = null; //used by ppu, spu
     this.ppu = null;
     this.spu = null;
+
+    this.loadROM = function(){
+        if(this.rom.length > this.memory.data.length){
+            for(var iROM = 0; iROM < this.memory.data.length; iROM++){
+                this.memory.write8(this.rom[iROM], iROM);
+            }
+        } else {
+            for(var iROM = 0; iROM < this.rom.length; iROM++){
+                this.memory.write8(this.rom[iROM], iROM);
+            }
+        }
+    };
 }
 
 var RAM = function (size) {
