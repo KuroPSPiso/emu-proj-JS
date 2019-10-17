@@ -61,6 +61,7 @@ var CPU = function(bus){
                 break;
             case 0x06: 
                 opName = 'MVI B';
+                mviB();
                 break;
             case 0x07: 
                 opName = 'RLC';
@@ -86,6 +87,7 @@ var CPU = function(bus){
                 break;
             case 0x0E: 
                 opName = 'MVI C';
+                mviC();
                 break;
             case 0x0F: 
                 opName = 'RRC';
@@ -111,6 +113,7 @@ var CPU = function(bus){
                 break;
             case 0x16: 
                 opName = 'MVI D';
+                mviD();
                 break;
             case 0x17: 
                 opName = 'RAL';
@@ -136,6 +139,7 @@ var CPU = function(bus){
                 break;
             case 0x1E: 
                 opName = 'MVI E';
+                mviE();
                 break;
             case 0x1F: 
                 opName = 'RAR';
@@ -160,6 +164,7 @@ var CPU = function(bus){
                 break;
             case 0x26: 
                 opName = 'MVI H';
+                mviH();
                 break;
             case 0x27: 
                 opName = 'DAA';
@@ -184,6 +189,7 @@ var CPU = function(bus){
                 break;
             case 0x2E: 
                 opName = 'MVI L';
+                mviL();
                 break;
             case 0x2F: 
                 opName = 'CMA';
@@ -208,6 +214,7 @@ var CPU = function(bus){
                 break;
             case 0x36: 
                 opName = 'MVI M';
+                mviM();
                 break;
             case 0x37: 
                 opName = 'STC';
@@ -233,6 +240,7 @@ var CPU = function(bus){
                 break;
             case 0x3E: 
                 opName = 'MVI A';
+                mviA();
                 break;
             case 0x3F: 
                 opName = 'CMC';
@@ -1175,52 +1183,67 @@ var CPU = function(bus){
         defaultZF(getA());
         defaultPF(getA());
     };
-    var stAX = function(loc)      {
+    var stAX = function(loc)    {
         w8(getA(), loc);
     };
-    var stAXB = function()          {
+    var stAXB = function()      {
         stAX(this.BC);
     };
-    var stAXD = function()          {
+    var stAXD = function()      {
         stAX(this.DE);
     };
-    var ldAX = function(loc)      {
+    var ldAX = function(loc)    {
         movA(r8(loc));
     }
-    var ldAXB = function()          {
+    var ldAXB = function()      {
         ldAX(this.BC);
     }
-    var ldAXD = function()          {
+    var ldAXD = function()      {
         ldAX(this.DE);
     }
+    var mviA = function()       { movA(getPC()); };
+    var adiA = function()       { addA(getPC()); };
+    var suiA = function()       { subA(getPC()); };
+    var sbiA = function()       { sbbA(getPC()); };
+    var aniA = function()       { anA(getPC()); };
+    var xriA = function()       { xrA(getPC()); };
+    var oriA = function()       { orA(getPC()); };
+    var cpiA = function()       { cmp(getPC()); };
 
     var movF = function(value)  { AF = (AF & 0xFF00) + (value & 0xFF); };
     var getF = function()       { return AF & 0x00FF; };
     
     var movB = function(value)  { BC = ((value & 0xFF) << 8) + (BC & 0x00FF); };
+    var mviB = function()       { movB(getPC()); };
     var getB = function()       { return (BC & 0xFF00) >> 8; };
     
     var movC = function(value)  { BC = (BC & 0xFF00) + (value & 0xFF); };
+    var mviC = function()       { movC(getPC()); };
     var getC = function()       { return BC & 0x00FF; };
 
     var inxBC = function()      { BC = inx(BC); }
     var dcxBC = function()      { BC = dcx(BC); }
     
     var movD = function(value)  { DE = ((value & 0xFF) << 8) + (DE & 0x00FF); };
+    var mviD = function()       { movD(getPC()); };
     var getD = function()       { return (DE & 0xFF00) >> 8; };
     
     var movE = function(value)  { DE = (DE & 0xFF00) + (value & 0xFF); };
+    var mviE = function()       { movE(getPC()); };
     var getE = function()       { return DE & 0x00FF; };
 
     var inxDE = function()      { DE = inx(DE); }
     var dcxDE = function()      { DE = dcx(DE); }
     
     var movH = function(value)  { HL = ((value & 0xFF) << 8) + (HL & 0x00FF); };
+    var mviH = function()       { movH(getPC()); };
     var getH = function()       { return (HL & 0xFF00) >> 8; };
     
     var movL = function(value)  { HL = (HL & 0xFF00) + (value & 0xFF); };
+    var mviL = function()       { movL(getPC()); };
     var getL = function()       { return HL & 0x00FF; };
 
+    var mviM = function()       { w8(getPC(), HL); };
     var inxHL = function()      { HL = inx(HL); }
     var dcxHL = function()      { HL = dcx(HL); }
 
