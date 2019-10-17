@@ -53,6 +53,7 @@ var CPU = function(bus){
                 break;
             case 0x01: 
                 opName = 'LXI B';
+                lxiBC();
                 break;
             case 0x02: 
                 opName = 'STAX B';
@@ -64,9 +65,11 @@ var CPU = function(bus){
                 break;
             case 0x04: 
                 opName = 'INR B';
+                inrB();
                 break;
             case 0x05: 
                 opName = 'DCR B';
+                dcrB();
                 break;
             case 0x06: 
                 opName = 'MVI B';
@@ -90,9 +93,11 @@ var CPU = function(bus){
                 break;
             case 0x0C: 
                 opName = 'INR C';
+                inrC();
                 break;
             case 0x0D: 
                 opName = 'DCR C';
+                dcrC();
                 break;
             case 0x0E: 
                 opName = 'MVI C';
@@ -105,6 +110,7 @@ var CPU = function(bus){
             //0x1X
             case 0x11: 
                 opName = 'LXI D';
+                lxiDE();
                 break;
             case 0x12: 
                 opName = 'STAX D';
@@ -116,9 +122,11 @@ var CPU = function(bus){
                 break;
             case 0x14: 
                 opName = 'INR D';
+                inrD();
                 break;
             case 0x15: 
                 opName = 'DCR D';
+                inrD();
                 break;
             case 0x16: 
                 opName = 'MVI D';
@@ -142,9 +150,11 @@ var CPU = function(bus){
                 break;
             case 0x1C: 
                 opName = 'INR E';
+                inrE();
                 break;
             case 0x1D: 
                 opName = 'DCR E';
+                dcrE();
                 break;
             case 0x1E: 
                 opName = 'MVI E';
@@ -157,6 +167,7 @@ var CPU = function(bus){
             //0x2X
             case 0x21: 
                 opName = 'LXI H';
+                lxiHL();
                 break;
             case 0x22: 
                 opName = 'SHLD';
@@ -168,9 +179,11 @@ var CPU = function(bus){
                 break;
             case 0x24: 
                 opName = 'INR H';
+                inrH();
                 break;
             case 0x25: 
                 opName = 'DCR H';
+                dcrM();
                 break;
             case 0x26: 
                 opName = 'MVI H';
@@ -194,6 +207,7 @@ var CPU = function(bus){
                 break;
             case 0x2C: 
                 opName = 'INR L';
+                inrL();
                 break;
             case 0x2D: 
                 opName = 'DCR L';
@@ -209,6 +223,7 @@ var CPU = function(bus){
             //0x3X
             case 0x31: 
                 opName = 'LXI SP';
+                lxiSP();
                 break;
             case 0x32: 
                 opName = 'STA';
@@ -220,9 +235,11 @@ var CPU = function(bus){
                 break;
             case 0x34: 
                 opName = 'INR M';
+                inrM();
                 break;
             case 0x35: 
                 opName = 'DCR M';
+                dcrM();
                 break;
             case 0x36: 
                 opName = 'MVI M';
@@ -230,6 +247,7 @@ var CPU = function(bus){
                 break;
             case 0x37: 
                 opName = 'STC';
+                stCF();
                 break;
             case 0x39: 
                 opName = 'DAD SP';
@@ -1159,31 +1177,10 @@ var CPU = function(bus){
         defaultPF(getA());
     };
     var inrA = function()       {
-        if(getA()===0xFF) {
-            movA(0x00);
-            stACF();
-        } else {
-            movA(getA() + 0x01);
-            clearACF(); 
-        }
-        defaultZF(getA());
-        defaultSF(getA());
-        defaultPF(getA());
-    };
-    var dcxA = function()       {
-        
+        movA(inr(getA()));
     };
     var dcrA = function()       {
-        if(getA() === 0x00) {
-            movA(0xFF);
-            stACF();
-        } else {
-            movA(getA() - 0x01);
-            clearACF(); 
-        }
-        defaultZF(getA());
-        defaultSF(getA());
-        defaultPF(getA());
+        movA(dcr(getA()));
     };
     var cmA = function()        {
         movA(0xFF - getA());
@@ -1246,41 +1243,63 @@ var CPU = function(bus){
     
     var movB = function(value)  { BC = ((value & 0xFF) << 8) + (BC & 0x00FF); };
     var mviB = function()       { movB(getPC()); };
+    var inrB = function()       {
+        movB(inr(getB()));
+    };
+    var dcrB = function()       {
+        movB(dcr(getB()));
+    };
     var getB = function()       { return (BC & 0xFF00) >> 8; };
     
     var movC = function(value)  { BC = (BC & 0xFF00) + (value & 0xFF); };
     var mviC = function()       { movC(getPC()); };
+    var inrC = function()       { movC(inr(getC())); };
+    var dcrC = function()       { movC(dcr(getC())); };
     var getC = function()       { return BC & 0x00FF; };
 
+    var lxiBC = function()      { BC = fetch16(getPC()); };
     var inxBC = function()      { BC = inx(BC); }
     var dcxBC = function()      { BC = dcx(BC); }
     
     var movD = function(value)  { DE = ((value & 0xFF) << 8) + (DE & 0x00FF); };
     var mviD = function()       { movD(getPC()); };
+    var inrD = function()       { movD(inr(getD())); };
+    var dcrD = function()       { movD(dcr(getD())); };
     var getD = function()       { return (DE & 0xFF00) >> 8; };
     
     var movE = function(value)  { DE = (DE & 0xFF00) + (value & 0xFF); };
     var mviE = function()       { movE(getPC()); };
+    var inrE = function()       { movA(inr(getE())); };
+    var dcrE = function()       { movA(dcr(getE())); };
     var getE = function()       { return DE & 0x00FF; };
 
+    var lxiDE = function()      { DE = fetch16(getPC()); };
     var inxDE = function()      { DE = inx(DE); }
     var dcxDE = function()      { DE = dcx(DE); }
     
     var movH = function(value)  { HL = ((value & 0xFF) << 8) + (HL & 0x00FF); };
     var mviH = function()       { movH(getPC()); };
+    var inrH = function()       { movH(inr(getH())); };
+    var dcrH = function()       { movH(dcr(getH())); };
     var getH = function()       { return (HL & 0xFF00) >> 8; };
     
     var movL = function(value)  { HL = (HL & 0xFF00) + (value & 0xFF); };
     var mviL = function()       { movL(getPC()); };
+    var inrL = function()       { movL(inr(getL())); };
+    var dcrL = function()       { movL(dcr(getL())); };
     var getL = function()       { return HL & 0x00FF; };
 
     var mviM = function()       { w8(getPC(), HL); };
-    var inxHL = function()      { HL = inx(HL); }
-    var dcxHL = function()      { HL = dcx(HL); }
+    var inrM = function()       { w8(inr(r8(),HL),HL); };
+    var dcrM = function()       { w8(dcr(r8(),HL),HL); };
+    var lxiHL = function()      { HL = fetch16(getPC()); };
+    var inxHL = function()      { HL = inx(HL); };
+    var dcxHL = function()      { HL = dcx(HL); };
 
-    var getSP = function()      { return SP & 0xFFFF; };
+    var lxiSP = function()      { SP = fetch16(getPC()); };
     var inxSP = function()      { SP = inx(SP); };
     var dcxSP = function()      { SP = dcx(SP); };
+    var getSP = function()      { return SP & 0xFFFF; };
 
     var cmc = function()        { if(checkBit(getF(), 7)){ clearCF(); } else { stCF(); } };
     var cmp = function(value)   {
@@ -1388,6 +1407,32 @@ var CPU = function(bus){
     };
     var sphl = function()       {
         SP = HL;
+    };
+    var inr = function(value)   {
+        if(value === 0xFF) {
+            value = 0x00;
+            stACF();
+        } else {
+            value += 0x01;
+            clearACF(); 
+        }
+        defaultZF(value);
+        defaultSF(value);
+        defaultPF(value);
+        return value;
+    };
+    var dcr = function(value)   {
+        if(value === 0x00) {
+            value = 0xFF;
+            stACF();
+        } else {
+            value -= 0x01;
+            clearACF(); 
+        }
+        defaultZF(value);
+        defaultSF(value);
+        defaultPF(value);
+        return value;
     };
 
     //RAM ACCESS
