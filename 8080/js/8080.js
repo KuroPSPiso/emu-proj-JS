@@ -788,7 +788,8 @@ var CPU = function(bus){
                 pushBC();
                 break;
             case 0xC6: 
-                opName = 'ADI';
+                opName = 'ADI M';
+                adiA();
                 break;
             case 0xC7: 
                 opName = 'RST 0';
@@ -814,6 +815,7 @@ var CPU = function(bus){
                 break;
             case 0xCE: 
                 opName = 'ACI M';
+                aciA();
                 break;
             case 0xCF: 
                 opName = 'RST 1';
@@ -841,6 +843,7 @@ var CPU = function(bus){
                 break;
             case 0xD6: 
                 opName = 'SUI M';
+                suiA();
                 break;
             case 0xD7: 
                 opName = 'RST 2';
@@ -859,6 +862,7 @@ var CPU = function(bus){
                 break;
             case 0xDE: 
                 opName = 'SBI M';
+                sbiA();
                 break;
             case 0xDF: 
                 opName = 'REST 3';
@@ -887,6 +891,7 @@ var CPU = function(bus){
                 break;
             case 0xE6: 
                 opName = 'ANI M';
+                aniA();
                 break;
             case 0xE7: 
                 opName = 'RST 4';
@@ -909,6 +914,7 @@ var CPU = function(bus){
                 break;
             case 0xEE: 
                 opName = 'XRI M';
+                xriA();
                 break;
             case 0xEF: 
                 opName = 'RST 5';
@@ -936,6 +942,7 @@ var CPU = function(bus){
                 break;
             case 0xF6: 
                 opName = 'ORI M';
+                oriA();
                 break;
             case 0xF7: 
                 opName = 'RST 6';
@@ -958,6 +965,7 @@ var CPU = function(bus){
                 break;
             case 0xFE: 
                 opName = 'CPI M';
+                cpiA();
                 break;
             case 0xFF: 
                 opName = 'RST 7';
@@ -1203,6 +1211,7 @@ var CPU = function(bus){
     }
     var mviA = function()       { movA(getPC()); };
     var adiA = function()       { addA(getPC()); };
+    var aciA = function()       { adcA(getPC()); };
     var suiA = function()       { subA(getPC()); };
     var sbiA = function()       { sbbA(getPC()); };
     var aniA = function()       { anA(getPC()); };
