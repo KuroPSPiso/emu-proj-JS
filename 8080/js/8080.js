@@ -3,6 +3,7 @@ var CPU = function(bus){
 
     var AF = BC = DE = HL = 0x0000;     //registers (8-bit registers)
     var PC = SP = 0x0000;               //pointers (16-bit registers)
+    var OPCODE = 0x00;
 
     AF = 0x0002;
     SP = 0xFFFF;
@@ -27,13 +28,19 @@ var CPU = function(bus){
     this.H  = function() { return getH(); };
     this.L  = function() { return getL(); };
     this.HL = function() { return (getH() << 8) + getL(); };
-    this.debug = function() { return `AF(${this.AF().toString(16).padLeft(4, '0').toUpperCase()}),BC(${this.BC().toString(16).padLeft(4, '0').toUpperCase()}),DE(${this.DE().toString(16).padLeft(4, '0').toUpperCase()}),HL(${this.HL().toString(16).padLeft(4, '0').toUpperCase()}),PC(${PC.toString(16).padLeft(4, '0').toUpperCase()}),SP(${SP.toString(16).padLeft(4, '0').toUpperCase()}),TICK(${this.getTick().toString().padLeft(10, '0').toUpperCase()}),OPNAME(${this.getOpName().toString().padLeft(9, '_')}),PC_CARRY(${this.getPC_CARRY()})`}
+    this.PC = function() { return PC; };
+    this.SP = function() { return SP; };
+    this.OPCODE = function() { return OPCODE; };
+    this.debug = function() { return `AF(${this.AF().toString(16).padLeft(4, '0').toUpperCase()}),BC(${this.BC().toString(16).padLeft(4, '0').toUpperCase()}),DE(${this.DE().toString(16).padLeft(4, '0').toUpperCase()}),HL(${this.HL().toString(16).padLeft(4, '0').toUpperCase()}),PC(${PC.toString(16).padLeft(4, '0').toUpperCase()}),SP(${SP.toString(16).padLeft(4, '0').toUpperCase()}),TICK(${this.getTick().toString().padLeft(10, '0').toUpperCase()}),AF(${this.OPCODE().toString(16).padLeft(4, '0').toUpperCase()}),OPNAME(${this.getOpName().toString().padLeft(9, '_')}),PC_CARRY(${this.getPC_CARRY()})`}
 
     this.exec = function(debugOpcode){
         PC_CARRY = 0;
         var pc = getPC();
-        if(typeof debugOpcode != 'undefined' && debugOpcode != null) pc = debugOpcode;
-        scan(fetch8(pc));
+        if(typeof debugOpcode != 'undefined' && debugOpcode != null){
+            pc = debugOpcode;
+            console.log(pc);
+        } 
+        scan(OPCODE = fetch8(pc));
     }
 
     var fetch8 = function(pc){
@@ -806,10 +813,12 @@ var CPU = function(bus){
                 break;
             case 0xC2: 
                 opName = 'JNZ';
+                jnz();
                 break;
             case 0xC3: 
             case 0xCB: 
                 opName = 'JMP MM';
+                jmp();
                 break;
             case 0xC4: 
                 opName = 'CNZ MM';
@@ -834,6 +843,7 @@ var CPU = function(bus){
                 break;
             case 0xCA: 
                 opName = 'JZ MM';
+                jz();
                 break;
             case 0xCC: 
                 opName = 'CZ MM';
@@ -861,6 +871,7 @@ var CPU = function(bus){
                 break;
             case 0xD2: 
                 opName = 'JNC';
+                jnc();
                 break;
             case 0xD3: 
                 opName = 'OUT M';
@@ -884,6 +895,7 @@ var CPU = function(bus){
                 break;
             case 0xDA: 
                 opName = 'JC MM';
+                jc();
                 break;
             case 0xDB: 
                 opName = 'IN M';
@@ -907,7 +919,8 @@ var CPU = function(bus){
                 popHL();
                 break;
             case 0xE2: 
-                opName = 'JNP MM';
+                opName = 'JPO MM';
+                jpo();
                 break;
             case 0xE3: 
                 opName = 'XTHL';
@@ -932,9 +945,11 @@ var CPU = function(bus){
                 break;
             case 0xE9: 
                 opName = 'PCHL';
+                pcHL();
                 break;
             case 0xEA: 
                 opName = 'JPE MM';
+                jpe();
                 break;
             case 0xEB: 
                 opName = 'XCHG';
@@ -960,6 +975,7 @@ var CPU = function(bus){
                 break;
             case 0xF2: 
                 opName = 'JP MM';
+                jp();
                 break;
             case 0xF3: 
                 opName = 'DI';
@@ -987,6 +1003,7 @@ var CPU = function(bus){
                 break;
             case 0xFA: 
                 opName = 'JM MM';
+                jm();
                 break;
             case 0xFB: 
                 opName = 'EI';  //ENABLE INTERUPT
@@ -1044,13 +1061,16 @@ var CPU = function(bus){
     var defaultSF = function(value) {
         if(checkBit(value, 7)) { stSF(); }
         else { clearSF(); }
-    }
+    };
     var stSF = function() { 
         movF(setBit(getF(), 7));
     };
     var clearSF = function() {
         movF(clearBit(getF(), 7));
-    }
+    };
+    var getSF = function() {
+        return getF() >> 7;
+    };
     var defaultZF = function(value) { 
         if(value === 0x0) { stZF(); }
         else if(clearBit(value, 7) === 0x0) { stZF(); } //BCD mode (assumed), negative values
@@ -1061,7 +1081,10 @@ var CPU = function(bus){
     };
     var clearZF = function() {
         movF(clearBit(getF(), 6));
-    }
+    };
+    var getZF = function() {
+        return getF() >> 6;
+    };
     var defaultPF = function(value) {
         var counter = 0;
         for(var pI = 0; pI <= 7; pI++) {
@@ -1069,13 +1092,16 @@ var CPU = function(bus){
         }
         if(counter === 0 || (counter % 2) === 0) { stPF(); }
         else { clearPF(); }
-    }
+    };
     var stPF = function() { 
         movF(setBit(getF(), 2));
     };
     var clearPF = function() {
         movF(clearBit(getF(), 2));
-    }
+    };
+    var getPF = function()  {
+        return getF() >> 2;
+    };
     //AC handled in DAA
     var stACF = function() { 
         movF(setBit(getF(), 4));
@@ -1085,13 +1111,13 @@ var CPU = function(bus){
     };
     //C handled in arth.
     var stCF = function() { 
-        movF(setBit(getF(), 7));
+        movF(setBit(getF(), 0));
     };
     var clearCF = function() {
-        movF(clearBit(getF(), 7));
+        movF(clearBit(getF(), 0));
     };
     var getCF = function() {
-        return getF() >> 7;
+        return getF() >> 0;
     };
 
     //standard opcodes
@@ -1307,7 +1333,6 @@ var CPU = function(bus){
         var half = (0xF - (value & 0x0F)) + (getA() & 0x0F);
         if(data > 0xFF) clearCF(); else stCF();
         if(half > 0xF) clearACF(); else stACF();
-        console.log(data,half);
         data &= 0xFF;
         defaultPF(data);
         defaultZF(data);
@@ -1433,6 +1458,41 @@ var CPU = function(bus){
         defaultSF(value);
         defaultPF(value);
         return value;
+    };
+    var pcHL = function()       {
+        PC=HL;
+    };
+    var jmp = function()        {
+        var data = fetch16(getPC());
+        PC = r16(data, data + 0x0001);
+    };
+    var jmpIf = function(value) {
+        var data = fetch16(getPC());
+        if(value === true) { PC = r16(data, data + 0x0001); }
+    };
+    var jc = function()         {
+        if(getCF() === 0x01) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var jnc = function()        {
+        if(getCF() === 0x00) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var jz = function()         {
+        if(getZF() === 0x01) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var jnz = function()        {
+        if(getZF() === 0x00) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var jm = function()         {
+        if(getSF() === 0x01) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var jp = function()         {
+        if(getSF() === 0x00) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var jpe = function()        {
+        if(getPF() === 0x01) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var jpo = function()        {
+        if(getPF() === 0x00) { jmpIf(true); } else { jmpIf(false); }
     };
 
     //RAM ACCESS

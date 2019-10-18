@@ -28,6 +28,12 @@
             a:hover{
                 background-color: orangered;
             }
+            a.selected { 
+                background-color: gold; 
+            }
+            a.selected:hover{
+                background-color: orange;
+            }
         </style>
     </head>
     <body>
@@ -36,59 +42,68 @@
         </div>
         <div id="debug"></div>
             <a onclick="debugFunc = null">run</a>
-            <a onclick="debugFunc = 0x00">nop</a>
-            <a onclick="debugFunc = 0x02">stAXB</a>
-            <a onclick="debugFunc = 0x03">inxBC</a>
-            <a onclick="debugFunc = 0x07">RLC</a>
-            <a onclick="debugFunc = 0x09">dadBC</a>
-            <a onclick="debugFunc = 0x0A">ldAXB</a>
-            <a onclick="debugFunc = 0x0B">dcxBC</a>
-            <a onclick="debugFunc = 0x0F">RRC</a>
-            <a onclick="debugFunc = 0x12">stAXD</a>
-            <a onclick="debugFunc = 0x13">inxDE</a>
-            <a onclick="debugFunc = 0x17">RAL</a>
-            <a onclick="debugFunc = 0x19">dadDE</a>
-            <a onclick="debugFunc = 0x1B">dcxDE</a>
-            <a onclick="debugFunc = 0x1A">ldAXD</a>
-            <a onclick="debugFunc = 0x1F">RAR</a>
-            <a onclick="debugFunc = 0x22">sHLd</a>
-            <a onclick="debugFunc = 0x23">inxHL</a>
-            <a onclick="debugFunc = 0x27">daA</a>
-            <a onclick="debugFunc = 0x29">dadHL</a>
-            <a onclick="debugFunc = 0x2A">lHLd</a>
-            <a onclick="debugFunc = 0x2B">dcxHL</a>
-            <a onclick="debugFunc = 0x2F">cmA</a>
-            <a onclick="debugFunc = 0x31">stA</a>
-            <a onclick="debugFunc = 0x33">inxSP</a>
-            <a onclick="debugFunc = 0x39">dadSP</a>
-            <a onclick="debugFunc = 0x3A">ldA</a>
-            <a onclick="debugFunc = 0x3B">dcxSP</a>
-            <a onclick="debugFunc = 0x3C">incA</a>
-            <a onclick="debugFunc = 0x3D">decA</a>
-            <a onclick="debugFunc = 0x3F">cmc</a>
-            <a onclick="debugFunc = 0x47">movB,A</a>
-            <a onclick="debugFunc = 0x4F">movC,A</a>
-            <a onclick="debugFunc = 0x57">movD,A</a>
-            <a onclick="debugFunc = 0x5F">movE,A</a>
-            <a onclick="debugFunc = 0x67">movH,A</a>
-            <a onclick="debugFunc = 0x6F">movL,A</a>
-            <a onclick="debugFunc = 0x77">movM,A</a>
-            <a onclick="debugFunc = 0x87">addA</a>
-            <a onclick="debugFunc = 0x8F">adcA</a>
-            <a onclick="debugFunc = 0x97">subA</a>
-            <a onclick="debugFunc = 0x9F">sbbA</a>
-            <a onclick="debugFunc = 0xA7">anA</a>
-            <a onclick="debugFunc = 0xAF">xrA</a>
-            <a onclick="debugFunc = 0xB7">orA</a>
-            <a onclick="debugFunc = 0xBF">cmpA</a>
-            <a onclick="debugFunc = 0xB8">cmpB</a>
-            <a onclick="debugFunc = 0xE3">XTHL</a>
-            <a onclick="debugFunc = 0xEB">XCHG</a>
-            <a onclick="debugFunc = 0xF9">SPHL</a>
+            <a id="H00" onclick="debugFunc = 0x00">nop</a>
+            <a id="H02"  onclick="debugFunc = 0x02">stAXB</a>
+            <a id="H03"  onclick="debugFunc = 0x03">inxBC</a>
+            <a id="H07"  onclick="debugFunc = 0x07">RLC</a>
+            <a id="H09"  onclick="debugFunc = 0x09">dadBC</a>
+            <a id="H0A"  onclick="debugFunc = 0x0A">ldAXB</a>
+            <a id="H0B"  onclick="debugFunc = 0x0B">dcxBC</a>
+            <a id="H0F"  onclick="debugFunc = 0x0F">RRC</a>
+            <a id="H12"  onclick="debugFunc = 0x12">stAXD</a>
+            <a id="H13"  onclick="debugFunc = 0x13">inxDE</a>
+            <a id="H17"  onclick="debugFunc = 0x17">RAL</a>
+            <a id="H19"  onclick="debugFunc = 0x19">dadDE</a>
+            <a id="H1B"  onclick="debugFunc = 0x1B">dcxDE</a>
+            <a id="H1A"  onclick="debugFunc = 0x1A">ldAXD</a>
+            <a id="H1F"  onclick="debugFunc = 0x1F">RAR</a>
+            <a id="H22"  onclick="debugFunc = 0x22">sHLd</a>
+            <a id="H23"  onclick="debugFunc = 0x23">inxHL</a>
+            <a id="H27"  onclick="debugFunc = 0x27">daA</a>
+            <a id="H29"  onclick="debugFunc = 0x29">dadHL</a>
+            <a id="H2A"  onclick="debugFunc = 0x2A">lHLd</a>
+            <a id="H2B"  onclick="debugFunc = 0x2B">dcxHL</a>
+            <a id="H2F"  onclick="debugFunc = 0x2F">cmA</a>
+            <a id="H31"  onclick="debugFunc = 0x31">stA</a>
+            <a id="H33"  onclick="debugFunc = 0x33">inxSP</a>
+            <a id="H39"  onclick="debugFunc = 0x39">dadSP</a>
+            <a id="H3A"  onclick="debugFunc = 0x3A">ldA</a>
+            <a id="H3B"  onclick="debugFunc = 0x3B">dcxSP</a>
+            <a id="H3C"  onclick="debugFunc = 0x3C">incA</a>
+            <a id="H3D"  onclick="debugFunc = 0x3D">decA</a>
+            <a id="H3F"  onclick="debugFunc = 0x3F">cmc</a>
+            <a id="H47"  onclick="debugFunc = 0x47">movB,A</a>
+            <a id="H4F"  onclick="debugFunc = 0x4F">movC,A</a>
+            <a id="H57"  onclick="debugFunc = 0x57">movD,A</a>
+            <a id="H5F"  onclick="debugFunc = 0x5F">movE,A</a>
+            <a id="H67"  onclick="debugFunc = 0x67">movH,A</a>
+            <a id="H6F"  onclick="debugFunc = 0x6F">movL,A</a>
+            <a id="H77"  onclick="debugFunc = 0x77">movM,A</a>
+            <a id="H87"  onclick="debugFunc = 0x87">addA</a>
+            <a id="H8F"  onclick="debugFunc = 0x8F">adcA</a>
+            <a id="H97"  onclick="debugFunc = 0x97">subA</a>
+            <a id="H9F"  onclick="debugFunc = 0x9F">sbbA</a>
+            <a id="HA7"  onclick="debugFunc = 0xA7">anA</a>
+            <a id="HAF"  onclick="debugFunc = 0xAF">xrA</a>
+            <a id="HB7"  onclick="debugFunc = 0xB7">orA</a>
+            <a id="HBF"  onclick="debugFunc = 0xBF">cmpA</a>
+            <a id="HC2"  onclick="debugFunc = 0xC2">jnz</a>
+            <a id="HC3"  onclick="debugFunc = 0xC3">jmp</a>
+            <a id="HCA"  onclick="debugFunc = 0xCA">jz</a>
+            <a id="HD2"  onclick="debugFunc = 0xD2">jnc</a>
+            <a id="HDA"  onclick="debugFunc = 0xDA">jc</a>
+            <a id="HE2"  onclick="debugFunc = 0xE2">jpo</a>
+            <a id="HE3"  onclick="debugFunc = 0xE3">XTHL</a>
+            <a id="HE9"  onclick="debugFunc = 0xE9">pcHL</a>
+            <a id="HEA"  onclick="debugFunc = 0xEA">jpe</a>
+            <a id="HEB"  onclick="debugFunc = 0xEB">XCHG</a>
+            <a id="HF2"  onclick="debugFunc = 0xF2">jp</a>
+            <a id="HFA"  onclick="debugFunc = 0xFA">jm</a>
+            <a id="HF9"  onclick="debugFunc = 0xF9">SPHL</a>
         <script>
             //DEBUG
             var isDebugMode = true;
-            var debugROM1 = [
+            var debugROM = [
                 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
                 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -121,15 +136,15 @@
                 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0xEF,
                 0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7,
                 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF
-            ];
+            ]; //rom for testing each individual opcode in sequence
             var debug = document.getElementById('debug');
-            var speed = 0;
+            var speed = 5;
             // var speed = 1000;
 
             //INIT
             var bus;
             if(isDebugMode){
-                bus = new BUS(debugROM1);
+                bus = new BUS(debugROM);
             } else {
                 bus = new BUS();
             }
@@ -142,19 +157,33 @@
             bus.loadROM();
 
             var debugFunc = null;
+            var currFunc = 0x00;
 
             //LOOP
             var isRunning = true;
             var loop = setInterval(function(){
+
+                cpu.exec(debugFunc);
+
                 //live debug
                 if(isDebugMode){
                     //debug.innerText = cpu.PC.toString(16).padLeft(4, '0').toUpperCase();
                     debug.innerText = cpu.debug();
+
+                    // console.log(currFunc);
+                    var oldElem = document.getElementById('H' + currFunc.toString(16).padLeft(2, '0'));
+                    if(typeof oldElem != 'undefined' && oldElem != null) {
+                        oldElem.classList.remove("selected");
+                    }
+                    currFunc = cpu.OPCODE();
+
+                    var newElem = document.getElementById('H' + currFunc.toString(16).padLeft(2, '0'));
+                    if(typeof newElem != 'undefined' && newElem != null) {
+                        newElem.classList.add("selected");
+                    }
                 }
 
-                cpu.exec(debugFunc);
-
-                if(!isRunning) DlearInterval(loop);
+                if(!isRunning) clearInterval(loop);
             }, speed); //remove 2nd argument to change/max out program exec speed.
         </script>
     </body>
