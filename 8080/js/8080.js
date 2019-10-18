@@ -4,6 +4,7 @@ var CPU = function(bus){
     var AF = BC = DE = HL = 0x0000;     //registers (8-bit registers)
     var PC = SP = 0x0000;               //pointers (16-bit registers)
     var OPCODE = 0x00;
+    var I_FLIPFLOP = false;             //interrupt flipflop
 
     AF = 0x0002;
     SP = 0xFFFF;
@@ -806,6 +807,7 @@ var CPU = function(bus){
             //0xCX
             case 0xC0:
                 opName = 'RNZ';
+                rnz();
                 break;
             case 0xC1: 
                 opName = 'POP B';
@@ -822,6 +824,7 @@ var CPU = function(bus){
                 break;
             case 0xC4: 
                 opName = 'CNZ MM';
+                cnz();
                 break;
             case 0xC5: 
                 opName = 'PUSH B';
@@ -836,10 +839,12 @@ var CPU = function(bus){
                 break;
             case 0xC8: 
                 opName = 'RZ';
+                rz();
                 break;
             case 0xC9: 
             case 0xD9: 
                 opName = 'RET';
+                ret();
                 break;
             case 0xCA: 
                 opName = 'JZ MM';
@@ -847,12 +852,14 @@ var CPU = function(bus){
                 break;
             case 0xCC: 
                 opName = 'CZ MM';
+                cz();
                 break;
             case 0xCD: 
             case 0xDD: 
             case 0xED: 
             case 0xFD: 
                 opName = 'CALL MM';
+                call();
                 break;
             case 0xCE: 
                 opName = 'ACI M';
@@ -864,6 +871,7 @@ var CPU = function(bus){
             //0xDX
             case 0xD0:
                 opName = 'RNC';
+                rnc();
                 break;
             case 0xD1: 
                 opName = 'POP D';
@@ -878,6 +886,7 @@ var CPU = function(bus){
                 break;
             case 0xD4: 
                 opName = 'CNC MM';
+                cnc();
                 break;
             case 0xD5: 
                 opName = 'PUSH D';
@@ -892,6 +901,7 @@ var CPU = function(bus){
                 break;
             case 0xD8: 
                 opName = 'RC';
+                rc();
                 break;
             case 0xDA: 
                 opName = 'JC MM';
@@ -902,6 +912,7 @@ var CPU = function(bus){
                 break;
             case 0xDC: 
                 opName = 'CC MM';
+                cc();
                 break;
             case 0xDE: 
                 opName = 'SBI M';
@@ -913,6 +924,7 @@ var CPU = function(bus){
             //0xEX
             case 0xE0:
                 opName = 'RPO';
+                rpo();
                 break;
             case 0xE1: 
                 opName = 'POP H';
@@ -928,6 +940,7 @@ var CPU = function(bus){
                 break;
             case 0xE4: 
                 opName = 'CPO MM';
+                cpo();
                 break;
             case 0xE5: 
                 opName = 'PUSH H';
@@ -942,6 +955,7 @@ var CPU = function(bus){
                 break;
             case 0xE8: 
                 opName = 'RPE';
+                rpe();
                 break;
             case 0xE9: 
                 opName = 'PCHL';
@@ -957,6 +971,7 @@ var CPU = function(bus){
                 break;
             case 0xEC: 
                 opName = 'CPE MM';
+                cpe();
                 break;
             case 0xEE: 
                 opName = 'XRI M';
@@ -968,6 +983,7 @@ var CPU = function(bus){
             //0xFX
             case 0xF0:
                 opName = 'RP';
+                rp();
                 break;
             case 0xF1: 
                 opName = 'POP PSW';
@@ -979,9 +995,11 @@ var CPU = function(bus){
                 break;
             case 0xF3: 
                 opName = 'DI';
+                di();
                 break;
             case 0xF4: 
                 opName = 'CP MM';
+                cp();
                 break;
             case 0xF5: 
                 opName = 'PUSH PSW';
@@ -996,6 +1014,7 @@ var CPU = function(bus){
                 break;
             case 0xF8: 
                 opName = 'RM';
+                rm();
                 break;
             case 0xF9: 
                 opName = 'SPHL';
@@ -1007,9 +1026,11 @@ var CPU = function(bus){
                 break;
             case 0xFB: 
                 opName = 'EI';  //ENABLE INTERUPT
+                ei();
                 break;
             case 0xFC: 
                 opName = 'CM MM';
+                cm();
                 break;
             case 0xFE: 
                 opName = 'CPI M';
@@ -1373,6 +1394,7 @@ var CPU = function(bus){
         inxSP();
         var pt1 = _bus.memory.popSP(getSP()) >> 8;
         inxSP();
+        return pt1 + pt2;
     };
     var pushPSW = function()    {
         push(AF);
@@ -1493,6 +1515,82 @@ var CPU = function(bus){
     };
     var jpo = function()        {
         if(getPF() === 0x00) { jmpIf(true); } else { jmpIf(false); }
+    };
+    var call = function()       {
+        // HL = getPC(); //set HL to next addy
+        // pushHL(); //set increment of (PC) to stack
+        push(getPC());//next instr.
+    };
+    var callIf = function(value)     {
+        if(value === true) {
+            call();
+        }
+    };
+    var cc = function()         {
+        if(getCF() === 0x01) { callIf(true); } else { callIf(false); }
+    };
+    var cnc = function()        {
+        if(getCF() === 0x00) { callIf(true); } else { callIf(false); }
+    };
+    var cz = function()         {
+        if(getZF() === 0x01) { callIf(true); } else { callIf(false); }
+    };
+    var cnz = function()        {
+        if(getZF() === 0x00) { callIf(true); } else { callIf(false); }
+    };
+    var cm = function()         {
+        if(getSF() === 0x01) { callIf(true); } else { callIf(false); }
+    };
+    var cp = function()         {
+        if(getSF() === 0x00) { callIf(true); } else { callIf(false); }
+    };
+    var cpe = function()        {
+        if(getPF() === 0x01) { callIf(true); } else { callIf(false); }
+    };
+    var cpo = function()        {
+        if(getPF() === 0x00) { callIf(true); } else { callIf(false); }
+    };
+    var ret = function()       {
+        PC = pop();
+    };
+    var retIf = function(value)     {
+        if(value === true) {
+            ret();
+        }
+    };
+    var rc = function()         {
+        if(getCF() === 0x01) { retIf(true); } else { retIf(false); }
+    };
+    var rnc = function()        {
+        if(getCF() === 0x00) { retIf(true); } else { retIf(false); }
+    };
+    var rz = function()         {
+        if(getZF() === 0x01) { retIf(true); } else { retIf(false); }
+    };
+    var rnz = function()        {
+        if(getZF() === 0x00) { retIf(true); } else { retIf(false); }
+    };
+    var rm = function()         {
+        if(getSF() === 0x01) { retIf(true); } else { retIf(false); }
+    };
+    var rp = function()         {
+        if(getSF() === 0x00) { retIf(true); } else { retIf(false); }
+    };
+    var rpe = function()        {
+        if(getPF() === 0x01) { retIf(true); } else { retIf(false); }
+    };
+    var rpo = function()        {
+        if(getPF() === 0x00) { retIf(true); } else { retIf(false); }
+    };
+    var ei = function()         {
+        I_FLIPFLOP = true;
+    };
+    var di = function()         {
+        I_FLIPFLOP = false;
+    };
+    //TODO: IN/OUT
+    var hlt = function()        {
+        getPC();
     };
 
     //RAM ACCESS
