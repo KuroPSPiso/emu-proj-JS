@@ -155,6 +155,7 @@
             bus.memory = ram;
             bus.cpu = cpu;
             bus.loadROM();
+            bus.initDevices();
 
             var debugFunc = null;
             var currFunc = 0x00;

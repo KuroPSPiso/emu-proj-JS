@@ -5,6 +5,7 @@ var CPU = function(bus){
     var PC = SP = 0x0000;               //pointers (16-bit registers)
     var OPCODE = 0x00;
     var I_FLIPFLOP = false;             //interrupt flipflop
+    var halted = false;
 
     AF = 0x0002;
     SP = 0xFFFF;
@@ -35,6 +36,8 @@ var CPU = function(bus){
     this.debug = function() { return `AF(${this.AF().toString(16).padLeft(4, '0').toUpperCase()}),BC(${this.BC().toString(16).padLeft(4, '0').toUpperCase()}),DE(${this.DE().toString(16).padLeft(4, '0').toUpperCase()}),HL(${this.HL().toString(16).padLeft(4, '0').toUpperCase()}),PC(${PC.toString(16).padLeft(4, '0').toUpperCase()}),SP(${SP.toString(16).padLeft(4, '0').toUpperCase()}),TICK(${this.getTick().toString().padLeft(10, '0').toUpperCase()}),AF(${this.OPCODE().toString(16).padLeft(4, '0').toUpperCase()}),OPNAME(${this.getOpName().toString().padLeft(9, '_')}),PC_CARRY(${this.getPC_CARRY()})`}
 
     this.exec = function(debugOpcode){
+        if(halted) return;
+        // if(I_FLIPFLOP) return;
         PC_CARRY = 0;
         var pc = getPC();
         if(typeof debugOpcode != 'undefined' && debugOpcode != null){
@@ -219,6 +222,7 @@ var CPU = function(bus){
                 break;
             case 0x2D: 
                 opName = 'DCR L';
+                dcrL();
                 break;
             case 0x2E: 
                 opName = 'MVI L';
@@ -507,6 +511,7 @@ var CPU = function(bus){
                 break;
             case 0x76: 
                 opName = 'HLT';
+                hlt();
                 break;
             case 0x77: 
                 opName = 'MOV M,A';
@@ -836,6 +841,7 @@ var CPU = function(bus){
                 break;
             case 0xC7: 
                 opName = 'RST 0';
+                rst(0);
                 break;
             case 0xC8: 
                 opName = 'RZ';
@@ -867,6 +873,7 @@ var CPU = function(bus){
                 break;
             case 0xCF: 
                 opName = 'RST 1';
+                rst(1);
                 break;
             //0xDX
             case 0xD0:
@@ -883,6 +890,7 @@ var CPU = function(bus){
                 break;
             case 0xD3: 
                 opName = 'OUT M';
+                _out();
                 break;
             case 0xD4: 
                 opName = 'CNC MM';
@@ -898,6 +906,7 @@ var CPU = function(bus){
                 break;
             case 0xD7: 
                 opName = 'RST 2';
+                rst(2);
                 break;
             case 0xD8: 
                 opName = 'RC';
@@ -909,6 +918,7 @@ var CPU = function(bus){
                 break;
             case 0xDB: 
                 opName = 'IN M';
+                _in();
                 break;
             case 0xDC: 
                 opName = 'CC MM';
@@ -920,6 +930,7 @@ var CPU = function(bus){
                 break;
             case 0xDF: 
                 opName = 'REST 3';
+                rst(3);
                 break;
             //0xEX
             case 0xE0:
@@ -952,6 +963,7 @@ var CPU = function(bus){
                 break;
             case 0xE7: 
                 opName = 'RST 4';
+                rst(4);
                 break;
             case 0xE8: 
                 opName = 'RPE';
@@ -979,6 +991,7 @@ var CPU = function(bus){
                 break;
             case 0xEF: 
                 opName = 'RST 5';
+                rst(5);
                 break;
             //0xFX
             case 0xF0:
@@ -1011,6 +1024,7 @@ var CPU = function(bus){
                 break;
             case 0xF7: 
                 opName = 'RST 6';
+                rst(6);
                 break;
             case 0xF8: 
                 opName = 'RM';
@@ -1038,6 +1052,7 @@ var CPU = function(bus){
                 break;
             case 0xFF: 
                 opName = 'RST 7';
+                rst(7);
                 break;
             default:
                 opName = 'NOP';
@@ -1382,17 +1397,17 @@ var CPU = function(bus){
         if(data) stCF(); else clearCF();
     };
     var push = function(loc)    {
-        var pt1 = loc >> 8;
-        var pt2 = loc & 0xFF;
-        _bus.memory.pushSP(pt1, getSP());
+        var pt1 = loc >> 8; //H-byte
+        var pt2 = loc & 0xFF; //L-byte
+        _bus.memory.pushSP(pt1, getSP() - 1);
+        _bus.memory.pushSP(pt2, getSP() - 2);
         dcxSP();
-        _bus.memory.pushSP(pt2, getSP());
         dcxSP();
     };
     var pop = function()        {
-        var pt2 = _bus.memory.popSP(getSP()) & 0xFF;
+        var pt2 = _bus.memory.popSP(getSP()) & 0xFF; //L-byte
+        var pt1 = _bus.memory.popSP(getSP() + 1) >> 8; //H-byte
         inxSP();
-        var pt1 = _bus.memory.popSP(getSP()) >> 8;
         inxSP();
         return pt1 + pt2;
     };
@@ -1517,9 +1532,7 @@ var CPU = function(bus){
         if(getPF() === 0x00) { jmpIf(true); } else { jmpIf(false); }
     };
     var call = function()       {
-        // HL = getPC(); //set HL to next addy
-        // pushHL(); //set increment of (PC) to stack
-        push(getPC());//next instr.
+        push(getPC()); //next instr.
     };
     var callIf = function(value)     {
         if(value === true) {
@@ -1588,9 +1601,20 @@ var CPU = function(bus){
     var di = function()         {
         I_FLIPFLOP = false;
     };
-    //TODO: IN/OUT
+    var _in = function()         {
+        movA(_bus.devices(getPC()).read8());
+    };
+    var _out = function()        {
+        _bus.devices(getPC()).write8(getA());
+    };
     var hlt = function()        {
         getPC();
+        halted = true;
+    };
+    var rst = function(scale)   {
+        var currPC = PC;
+        call();
+        PC = 8 * scale;
     };
 
     //RAM ACCESS
@@ -1618,6 +1642,15 @@ var BUS = function(rom) {
     this.ppu = null;
     this.spu = null;
 
+    this.devices = null;
+    this.deviceIndex = 0;
+    this.addDevice = function(index, type){
+        this.devices[index] = DEVICE(type);
+    };
+    this.removeDevice = function(index){
+        this.devices[index] = DEVICE();
+    };
+
     this.loadROM = function(){
         if(this.rom.length > this.memory.data.length){
             for(var iROM = 0; iROM < this.memory.data.length; iROM++){
@@ -1629,7 +1662,44 @@ var BUS = function(rom) {
             }
         }
     };
+    
+    this.initDevices = function(){
+        this.devices = [];
+        for(var iD = 0x100; iD > 0; iD--){
+            this.devices.push(new DEVICE());
+            console.log(this.devices);
+        } 
+    };
 }
+
+var DEVICE = function(type){
+    this.type = 'NOP';
+    this.byteStream = 0x00;
+    this.read8 = function(){
+        handleType_GET();
+    }; //current data
+    this.write8 = function(value){
+        handleType_SET(value);
+    }
+
+    var handleType_GET = function(){
+        if(type === 'NOP'){ byteStream = 0x00; return byteStream; }
+        if(type === 'KEYBOARD') {
+            //todo: keyboard read logic
+            return byteStream;
+        }
+    };
+
+    var handleType_SET = function(value){
+        byteStream = value;
+        if(type === 'NOP') { }
+        if(type === 'KEYBOARD') { }
+    };
+
+    if(typeof type != 'undefined' && type != null){
+        this.type = type;
+    }
+};
 
 var RAM = function (size) {
     this.data = []; //create array object for RAM (contains STACK)
